@@ -14,11 +14,11 @@
 		<Button x:Name="BtnAddCheater" Content="Add Cheater" HorizontalAlignment="Left" Margin="113,58,0,0" VerticalAlignment="Top" Height="66" Width="120" RenderTransformOrigin="1.635,0.554" Click="AddCheaterButtonClicked"/>
 		<Button x:Name="BtnImport" Content="Import" HorizontalAlignment="Left" Margin="398,58,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.52,1.485" Height="66" Width="120" Click="ImportClicked"/>
 		<Button x:Name="BtnExport" Content="Export" HorizontalAlignment="Left" Margin="537,58,0,0" VerticalAlignment="Top" Height="66" Width="120" Click="ExportClicked"/>
-		<TextBox x:Name="TxtSteamID" HorizontalAlignment="Left" Margin="113,10,0,0" Text="STEAM:0:1:12354847" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" GotFocus="SteamID_GotFocus" Height="24" />
+		<TextBox x:Name="TxtSteamID" HorizontalAlignment="Left" Margin="113,10,0,0" Text="STEAM:0:1:12354847" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" GotFocus="SteamID_GotFocus" LostFocus="SteamID_LostFocus"  Height="24" />
 		<Button x:Name="BtnAutoStatus" Content="Status Key Bind" HorizontalAlignment="Left" Margin="256,58,0,0" VerticalAlignment="Top" Height="66" Width="120" RenderTransformOrigin="1.635,0.554" Click="StatusButtonClicked"/>
-		<TextBox x:Name="TxtCheats" HorizontalAlignment="Left" Margin="256,10,0,0" Text="Spinbot, Aimbot, Wallhacks" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" Height="24" GotFocus="Cheats_GotFocus"/>
-		<TextBox x:Name="TxtThreatLevel" HorizontalAlignment="Left" Margin="398,10,0,0" Text="1-10" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" Height="24" GotFocus="ThreatLevel_GotFocus"/>
-		<TextBox x:Name="TxtName" HorizontalAlignment="Left" Margin="537,10,0,0" Text="The Suspect" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" Height="24" GotFocus="Name_GotFocus"/>
+		<TextBox x:Name="TxtCheats" HorizontalAlignment="Left" Margin="256,10,0,0" Text="Spinbot, Aimbot, Wallhacks" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" Height="24" GotFocus="Cheats_GotFocus" LostFocus="Cheats_LostFocus"/>
+		<TextBox x:Name="TxtThreatLevel" HorizontalAlignment="Left" Margin="398,10,0,0" Text="1-10" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" Height="24" GotFocus="ThreatLevel_GotFocus" LostFocus="ThreatLevel_LostFocus"/>
+		<TextBox x:Name="TxtName" HorizontalAlignment="Left" Margin="537,10,0,0" Text="The Suspect" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" Height="24" GotFocus="Name_GotFocus" LostFocus="Name_LostFocus"/>
 		<ScrollViewer Background="Black" x:Name="ScrollPlayers" 
 				  HorizontalScrollBarVisibility="Auto" Margin="32,148,32,48">
 			<StackPanel x:Name="StackPanel" Background="#FF232323" Margin="0,0,0,0">

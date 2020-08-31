@@ -87,7 +87,7 @@ namespace DangerZoneHackerTracker
 			CommunityURLRegex = new Regex(@"(\d+)");
 			CommunityProfilePictureRegex = new Regex(string.Format(@"<link rel={0}image_src{0} href={0}(.*){0}>", '"'));
 
-			if(!Directory.Exists(Path.GetDirectoryName(Constants.DatabasePath)))
+			if (!Directory.Exists(Path.GetDirectoryName(Constants.DatabasePath)))
 			{
 				Directory.CreateDirectory(Path.GetDirectoryName(Constants.DatabasePath));
 			}
@@ -120,8 +120,8 @@ namespace DangerZoneHackerTracker
 			var notificationManager = new NotificationManager();
 			await notificationManager.ShowAsync(new NotificationContent()
 			{
-				Title =		$"Hacker {cheater.LastKnownName} Found In Game",
-				Message =	$"Threat Level: {cheater.ThreatLevel}\n" +
+				Title = $"Hacker {cheater.LastKnownName} Found In Game",
+				Message = $"Threat Level: {cheater.ThreatLevel}\n" +
 							$"Known Cheats: {cheater.CheatList}",
 				Type = NotificationType.Error
 			});
@@ -145,7 +145,7 @@ namespace DangerZoneHackerTracker
 					Keyboard.SendKey(KeyConvert.ToDirectXKeyCode(StatusKey), true, Keyboard.InputType.Keyboard);
 				}
 			}
-			catch (Exception _)	{}
+			catch (Exception _) { }
 		}
 
 		/// <summary>
@@ -157,7 +157,7 @@ namespace DangerZoneHackerTracker
 			// Open the file in a way that won't bother csgo.
 			using var stream = File.Open(Path.Combine(path, "console.log"), FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite);
 			using var reader = new StreamReader(stream, true);
-			if(reader.BaseStream.Length < 0)
+			if (reader.BaseStream.Length < 0)
 			{
 				return;
 			}
@@ -171,7 +171,7 @@ namespace DangerZoneHackerTracker
 			{
 				var mapMatch = MapNameRegex.Match(line);
 				// The first group match will be the current map on the server
-				if(mapMatch.Success && mapMatch.Groups[1].Value != CurrentMap)
+				if (mapMatch.Success && mapMatch.Groups[1].Value != CurrentMap)
 				{
 					AlertedPlayers.Clear();
 					CurrentMap = mapMatch.Groups[1].Value;
@@ -216,7 +216,7 @@ namespace DangerZoneHackerTracker
 			stream.SetLength(0);
 			stream.Close();
 
-			if(tempUsers.Count != Users.Count && tempUsers.Count != 0)
+			if (tempUsers.Count != Users.Count && tempUsers.Count != 0)
 			{
 				Users = tempUsers;
 				// can only update controls from the main thread, which we are not in. So we invoke an inline function to do it for us.
@@ -238,12 +238,30 @@ namespace DangerZoneHackerTracker
 			var dialog = new SaveFileDialog();
 			dialog.FileName = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "exported_cheaters.sq3");
 			dialog.DefaultExt = ".sq3";
-			if((bool)dialog.ShowDialog())
+			dialog.Filter = "sqlite files (*.sq3)|*.sq3|All Files (*.*)|*.*";
+
+			if ((bool)dialog.ShowDialog())
 			{
-				File.Copy(Constants.DatabasePath, dialog.FileName);
+				// Try to save the database file
+				try
+				{
+					if(File.Exists(dialog.FileName))
+					{
+						File.Delete(dialog.FileName);
+					}
+					File.Copy(Constants.DatabasePath, dialog.FileName);
+				}
+				// If we fail try to save it under a unique name
+				catch
+				{
+					try
+					{
+						File.Copy(Constants.DatabasePath, dialog.FileName + "." + Guid.NewGuid());
+					}
+					catch { }
+				}
 			}
 
-			//dialog.Filter = "sqlite files (*.sq3)|*.sq3|All Files (*.*)|*.*";
 		}
 
 		private void ImportClicked(object sender, RoutedEventArgs e)
@@ -251,7 +269,7 @@ namespace DangerZoneHackerTracker
 			var dialog = new OpenFileDialog();
 			dialog.Filter = "sqlite files (*.sq3)|*.sq3|All Files (*.*)|*.*";
 			dialog.Multiselect = false;
-			if((bool)dialog.ShowDialog())
+			if ((bool)dialog.ShowDialog())
 			{
 				using var otherDB = new SQLiteConnection(dialog.FileName, Constants.Flags);
 				var cheaterList = otherDB.Table<Cheater>().ToList();
@@ -283,25 +301,33 @@ namespace DangerZoneHackerTracker
 		/// <param name="e"></param>
 		private void AddCheaterButtonClicked(object sender, RoutedEventArgs e)
 		{
-			SteamID steamAccount;
-			if (TxtSteamID.Text.Contains("community"))
+			try
 			{
-				steamAccount = new SteamID(CommunityURLRegex.Match(TxtSteamID.Text).Groups[1].Value);
-			}
-			else
-			{
-				steamAccount = new SteamID(TxtSteamID.Text);
-			}
+				SteamID steamAccount;
+				if (TxtSteamID.Text.Contains("community"))
+				{
+					var steam64 = CommunityURLRegex.Match(TxtSteamID.Text).Groups[1].Value;
+					steamAccount = new SteamID(Convert.ToUInt64(steam64));
+				}
+				else
+				{
+					steamAccount = new SteamID(TxtSteamID.Text);
+				}
 
-			using var db = new DatabaseConnection();
-			int.TryParse(TxtThreatLevel.Text.Trim(), out int threat);
-			db.Insert(new Cheater()
+				using var db = new DatabaseConnection();
+				int.TryParse(TxtThreatLevel.Text.Trim(), out int threat);
+				db.InsertOrReplace(new Cheater()
+				{
+					AccountID = steamAccount.AccountID,
+					ThreatLevel = threat,
+					CheatList = TxtCheats.Text,
+					LastKnownName = TxtName.Text
+				});
+			}
+			catch
 			{
-				AccountID = steamAccount.AccountID,
-				ThreatLevel = threat,
-				CheatList = TxtCheats.Text,
-				LastKnownName = TxtName.Text
-			});
+
+			}
 
 			// reset the default placeholders
 			TxtCheats.Text = "Spinbot, Aimbot, Wallhacks";
@@ -344,12 +370,26 @@ namespace DangerZoneHackerTracker
 				TxtSteamID.Text = "";
 			}
 		}
+		private void SteamID_LostFocus(object sender, RoutedEventArgs e)
+		{
+			if (TxtSteamID.Text == "")
+			{
+				TxtSteamID.Text = "STEAM:0:1:12354847";
+			}
+		}
 
 		private void ThreatLevel_GotFocus(object sender, RoutedEventArgs e)
 		{
 			if (TxtThreatLevel.Text == "1-10")
 			{
 				TxtThreatLevel.Text = "";
+			}
+		}
+		private void ThreatLevel_LostFocus(object sender, RoutedEventArgs e)
+		{
+			if (TxtThreatLevel.Text == "")
+			{
+				TxtThreatLevel.Text = "1-10";
 			}
 		}
 
@@ -360,6 +400,13 @@ namespace DangerZoneHackerTracker
 				TxtName.Text = "";
 			}
 		}
+		private void Name_LostFocus(object sender, RoutedEventArgs e)
+		{
+			if (TxtName.Text == "")
+			{
+				TxtName.Text = "The Suspect";
+			}
+		}
 
 		private void Cheats_GotFocus(object sender, RoutedEventArgs e)
 		{
@@ -368,7 +415,13 @@ namespace DangerZoneHackerTracker
 				TxtCheats.Text = "";
 			}
 		}
-
+		private void Cheats_LostFocus(object sender, RoutedEventArgs e)
+		{
+			if (TxtCheats.Text == "")
+			{
+				TxtCheats.Text = "Spinbot, Aimbot, Wallhacks";
+			}
+		}
 		#endregion
 
 		/// <summary>
@@ -435,7 +488,7 @@ namespace DangerZoneHackerTracker
 			Label lName = new Label()
 			{
 				Content = name.Replace("_", "__"),
-				Margin = new Thickness(0.0, 48/4, 48/4, 5.0)
+				Margin = new Thickness(0.0, 48 / 4, 48 / 4, 5.0)
 			};
 			// single underscores have special meanings and have to be escaped
 			Label steamID = new Label()
@@ -540,10 +593,10 @@ namespace DangerZoneHackerTracker
 				}
 
 				string line;
-				while((line = readStream.ReadLine()) != null)
+				while ((line = readStream.ReadLine()) != null)
 				{
 					var match = CommunityProfilePictureRegex.Match(line);
-					if(match.Success)
+					if (match.Success)
 					{
 						response.Close();
 						readStream.Close();
@@ -561,7 +614,6 @@ namespace DangerZoneHackerTracker
 
 		private Image GetProfilePicture(SteamID steam)
 		{
-
 			var url = $"http://steamcommunity.com/profiles/{steam.ConvertToUInt64()}";
 			var profilePicURL = GetProfilePictureURL(url);
 			var image = CreateImage(profilePicURL);

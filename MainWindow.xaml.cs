@@ -9,7 +9,6 @@ using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using SteamIDs_Engine;
 using Notifications.Wpf.Core;
 using NAudio.Wave;
 using DangerZoneHackerTracker.Models;
@@ -47,7 +46,7 @@ namespace DangerZoneHackerTracker
 	struct ConnectedUser
 	{
 		public string Name;
-		public string SteamID;
+		public SteamID SteamID;
 	}
 
 	/// <summary>
@@ -60,19 +59,26 @@ namespace DangerZoneHackerTracker
 		bool IsTrackingStatusKey;
 		const string path = @"C:\Program Files (x86)\Steam\steamapps\common\Counter-Strike Global Offensive\csgo\";
 		Regex SteamIDRegex;
-		List<string> AlertedPlayers;
-		List<ConnectedUser> Users;
+		Regex MapNameRegex;
+		Regex CommunityURLRegex;
+		List<uint> AlertedPlayers;
+		Dictionary<uint, ConnectedUser> Users;
+		string CurrentMap = "";
 
 
 		[PermissionSet(SecurityAction.Demand, Name = "FullTrust")]
 		public MainWindow()
 		{
 			InitializeComponent();
+
+			var id = new SteamID("STEAM_0:1:29867327");
 			
 			// Initialize properties
-			Users = new List<ConnectedUser>();
-			AlertedPlayers = new List<string>();
+			Users = new Dictionary<uint, ConnectedUser>();
+			AlertedPlayers = new List<uint>();
 			SteamIDRegex = new Regex(string.Format(@"(\\?{0}.*\\?{0}) (STEAM_\d:\d:\d+)", "\""));
+			MapNameRegex = new Regex(@"map\s+: (\w+)");
+			CommunityURLRegex = new Regex(@"(\d+)");
 
 			// Create Table
 			using var db = new DatabaseConnection();
@@ -115,7 +121,7 @@ namespace DangerZoneHackerTracker
 				new Timer(ReadConsole, null, TimeSpan.FromSeconds(0.2).Milliseconds, Timeout.Infinite);
 
 				// we have a key bound to status and are in game, then start activating our status key
-				if (StatusKey != Key.None && Models.Window.GetActiveWindowTitle().Contains("csgo"))
+				if (StatusKey != Key.None && Models.Window.GetActiveWindowTitle() == "Counter-Strike: Global Offensive")
 				{
 					Keyboard.SendKey(KeyConvert.ToDirectXKeyCode(StatusKey), false, Keyboard.InputType.Keyboard);
 					Keyboard.SendKey(KeyConvert.ToDirectXKeyCode(StatusKey), true, Keyboard.InputType.Keyboard);
@@ -133,13 +139,26 @@ namespace DangerZoneHackerTracker
 			// Open the file in a way that won't bother csgo.
 			using var stream = File.Open(Path.Combine(path, "console.log"), FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite);
 			using var reader = new StreamReader(stream, true);
+			if(reader.BaseStream.Length < 0)
+			{
+				return;
+			}
 
 			using var db = new DatabaseConnection();
-			Debug.WriteLine($"size bf:{reader.BaseStream.Length}");
+			var tempUsers = new Dictionary<uint, ConnectedUser>();
+
 			string line;
 			// iterate each line of the file
 			while ((line = reader.ReadLine()) != null)
 			{
+				var mapMatch = MapNameRegex.Match(line);
+				// The first group match will be the current map on the server
+				if(mapMatch.Success && mapMatch.Groups[1].Value != CurrentMap)
+				{
+					AlertedPlayers.Clear();
+					CurrentMap = mapMatch.Groups[1].Value;
+				}
+
 				var match = SteamIDRegex.Match(line);
 				// check for an exact match
 				if (!match.Success || match.Groups.Count != 3)
@@ -151,28 +170,25 @@ namespace DangerZoneHackerTracker
 				ConnectedUser user = new ConnectedUser()
 				{
 					Name = match.Groups[1].Value,
-					SteamID = match.Groups[2].Value
+					SteamID = new SteamID(match.Groups[2].Value)
 				};
 
 				// TODO: Write HashMap implementation of Users.
 				// Check if user is already in list of connected users.
-				if (!Users.Any(u => u.SteamID == user.SteamID) )
-				{
-					Users.Add(user);
-				}
+				tempUsers[user.SteamID.AccountID] = user;
 
 				// create a Cheater table object to work from. Changes to this object will be reflected in the db.
-				var cheater = db.Table<Cheater>().SingleOrDefault(e => e.SteamID2 == user.SteamID);
+				var cheater = db.Table<Cheater>().SingleOrDefault(e => e.AccountID == user.SteamID);
 				if (cheater != null)
 				{
 					// Check if we've alerted them to this player this map.
-					if (!AlertedPlayers.Contains(user.SteamID))
+					if (!AlertedPlayers.Contains(user.SteamID.AccountID))
 					{
 						// should i show their current name or their saved name?
 						cheater.LastKnownName = user.Name;
 						ShowToastAsync(cheater);
 						PlayHax();
-						AlertedPlayers.Add(user.SteamID);
+						AlertedPlayers.Add(user.SteamID.AccountID);
 						db.InsertOrReplace(cheater, typeof(Cheater));
 					}
 				}
@@ -180,21 +196,23 @@ namespace DangerZoneHackerTracker
 
 			//clear the file to save on performance.
 			stream.SetLength(0);
-			Debug.WriteLine($"size af:{reader.BaseStream.Length}");
 			stream.Close();
-			// remove duplicate users from the list
-			Users = Users.Distinct().ToList();
-			// can only update controls from the main thread, which we are not in. So we invoke an inline function to do it for us.
-			this.Dispatcher.Invoke(() =>
+
+			if(tempUsers.Count != Users.Count && tempUsers.Count != 0)
 			{
-				// remove all children except the headers
-				StackPanel.Children.RemoveRange(1, StackPanel.Children.Count - 2);
-				// update the list of users in the app
-				foreach (var user in Users)
+				Users = tempUsers;
+				// can only update controls from the main thread, which we are not in. So we invoke an inline function to do it for us.
+				this.Dispatcher.Invoke(() =>
 				{
-					StackPanel.Children.Add(this.CreateUserRow(user.Name, user.SteamID));
-				}
-			});
+					// remove all children except the headers
+					StackPanel.Children.RemoveRange(1, StackPanel.Children.Count - 2);
+					// update the list of users in the app
+					foreach (var user in Users.Values)
+					{
+						StackPanel.Children.Add(this.CreateUserRow(user.Name, user.SteamID.Render()));
+					}
+				});
+			}
 		}
 
 		private void ExportClicked(object sender, RoutedEventArgs e)
@@ -234,13 +252,21 @@ namespace DangerZoneHackerTracker
 		/// <param name="e"></param>
 		private void AddCheaterButtonClicked(object sender, RoutedEventArgs e)
 		{
-			// TODO: Accept community urls
-			var steamAccount = new SteamID_Engine(TxtSteamID.Text);
+			SteamID steamAccount;
+			if (TxtSteamID.Text.Contains("community"))
+			{
+				steamAccount = new SteamID(CommunityURLRegex.Match(TxtSteamID.Text).Groups[1].Value);
+			}
+			else
+			{
+				steamAccount = new SteamID(TxtSteamID.Text);
+			}
+
 			using var db = new DatabaseConnection();
 			int.TryParse(TxtThreatLevel.Text.Trim(), out int threat);
 			db.Insert(new Cheater()
 			{
-				SteamID2 = steamAccount.Steam2,
+				AccountID = steamAccount.AccountID,
 				ThreatLevel = threat,
 				CheatList = TxtCheats.Text,
 				LastKnownName = TxtName.Text
@@ -393,7 +419,7 @@ namespace DangerZoneHackerTracker
 				db.InsertOrReplace(new Cheater()
 				{
 					LastKnownName = name,
-					SteamID2 = steamid,
+					AccountID = new SteamID(steamid).AccountID,
 					CheatList = cheatList.Text,
 					ThreatLevel = threat
 				});

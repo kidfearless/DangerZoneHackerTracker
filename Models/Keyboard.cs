@@ -210,21 +210,21 @@ namespace DangerZoneHackerTracker.Models
 
 			Input[] inputs =
 			{
-			new Input
-			{
-				type = (int) inputType,
-				u = new InputUnion
+				new Input
 				{
-					ki = new KeyboardInput
+					type = (int) inputType,
+					u = new InputUnion
 					{
-						wVk = 0,
-						wScan = (ushort) key,
-						dwFlags = flagtosend,
-						dwExtraInfo = GetMessageExtraInfo()
+						ki = new KeyboardInput
+						{
+							wVk = 0,
+							wScan = (ushort) key,
+							dwFlags = flagtosend,
+							dwExtraInfo = GetMessageExtraInfo()
+						}
 					}
 				}
-			}
-		};
+			};
 
 			SendInput((uint)inputs.Length, inputs, Marshal.SizeOf(typeof(Input)));
 		}

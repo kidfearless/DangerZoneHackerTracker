@@ -10,9 +10,8 @@ namespace DangerZoneHackerTracker
 	{
 		[PrimaryKey, AutoIncrement, Column(nameof(Id))]
 		public int Id { get; set; }
-		[Column(nameof(SteamID2))]
-
-		public string SteamID2 { get; set; }
+		[Column(nameof(AccountID))]
+		public uint AccountID { get; set; }
 		[Column(nameof(ThreatLevel))]
 		public int ThreatLevel { get; set; }
 		[Column(nameof(CheatList))]

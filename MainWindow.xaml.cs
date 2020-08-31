@@ -19,6 +19,7 @@ using System.Net;
 using System.Text;
 using Microsoft.Win32;
 using SQLite;
+using System.Threading.Tasks;
 
 
 /*
@@ -69,7 +70,7 @@ namespace DangerZoneHackerTracker
 		Regex CommunityProfilePictureRegex;
 		List<uint> AlertedPlayers;
 		Dictionary<uint, ConnectedUser> Users;
-		Dictionary<uint, Image> ProfilePictures;
+		Dictionary<uint, Grid> UserRows;
 		string CurrentMap = "";
 
 
@@ -80,7 +81,7 @@ namespace DangerZoneHackerTracker
 
 			// Initialize properties
 			Users = new Dictionary<uint, ConnectedUser>();
-			ProfilePictures = new Dictionary<uint, Image>();
+			UserRows = new Dictionary<uint, Grid>();
 			AlertedPlayers = new List<uint>();
 			SteamIDRegex = new Regex(string.Format(@"(\\?{0}.*\\?{0}) (STEAM_\d:\d:\d+)", "\""));
 			MapNameRegex = new Regex(@"map\s+: (\w+)");
@@ -196,7 +197,7 @@ namespace DangerZoneHackerTracker
 				tempUsers[user.SteamID.AccountID] = user;
 
 				// create a Cheater table object to work from. Changes to this object will be reflected in the db.
-				var cheater = db.Table<Cheater>().SingleOrDefault(e => e.AccountID == user.SteamID);
+				var cheater = db.Table<Cheater>().SingleOrDefault(e => e.AccountID == user.SteamID.AccountID);
 				if (cheater != null)
 				{
 					// Check if we've alerted them to this player this map.
@@ -218,16 +219,21 @@ namespace DangerZoneHackerTracker
 
 			if (tempUsers.Count != Users.Count && tempUsers.Count != 0)
 			{
+				var keys = UserRows.Keys.Where(user => !tempUsers.ContainsKey(user));
+				foreach (var key in keys)
+				{
+					StackPanel.Children.Remove(UserRows[key]);
+				}
 				Users = tempUsers;
 				// can only update controls from the main thread, which we are not in. So we invoke an inline function to do it for us.
-				this.Dispatcher.Invoke(() =>
+				this.Dispatcher.Invoke(async () =>
 				{
 					// remove all children except the headers
 					StackPanel.Children.RemoveRange(1, StackPanel.Children.Count - 2);
 					// update the list of users in the app
 					foreach (var user in Users.Values)
 					{
-						StackPanel.Children.Add(this.CreateUserRow(user.Name, user.SteamID));
+						StackPanel.Children.Add(await this.CreateUserRowAsync(user.Name, user.SteamID));
 					}
 				});
 			}
@@ -447,7 +453,7 @@ namespace DangerZoneHackerTracker
 		/// <param name="name"></param>
 		/// <param name="steamid"></param>
 		/// <returns></returns>
-		private Grid CreateUserRow(string name, SteamID steamid)
+		private async Task<Grid> CreateUserRowAsync(string name, SteamID steamid)
 		{
 			/*
 			 *	<Label Grid.Column="0">pic</Label>
@@ -505,15 +511,22 @@ namespace DangerZoneHackerTracker
 			{
 				Margin = new Thickness(5.0, 0.0, 5.0, 0.0)
 			};
-			var profilePicture = GetProfilePicture(steamid);
-			profilePicture.MouseDown += (object sender, MouseButtonEventArgs e) =>
-			{
-				try
+
+			//var thread = new Thread(async () =>
+			//{
+				var profilePicture = await GetProfilePictureAsync(steamid);
+				profilePicture.MouseDown += (object sender, MouseButtonEventArgs e) =>
 				{
-					Process.Start(new ProcessStartInfo($"http://steamcommunity.com/profiles/{steamid.ConvertToUInt64()}") { UseShellExecute = true });
-				}
-				catch { }
-			};
+					try
+					{
+						Process.Start(new ProcessStartInfo($"http://steamcommunity.com/profiles/{steamid.ConvertToUInt64()}") { UseShellExecute = true });
+					}
+					catch { }
+				};
+				grid.Children.Add(profilePicture);
+				Grid.SetColumn(profilePicture, 0);
+
+			//});
 
 			var addButton = new Button()
 			{
@@ -539,7 +552,6 @@ namespace DangerZoneHackerTracker
 			};
 
 			// add our controls to the grid
-			grid.Children.Add(profilePicture);
 			grid.Children.Add(lName);
 			grid.Children.Add(steamID);
 			grid.Children.Add(cheatList);
@@ -547,7 +559,6 @@ namespace DangerZoneHackerTracker
 			grid.Children.Add(addButton);
 
 			// tell our controls which grid column they should use.
-			Grid.SetColumn(profilePicture, 0);
 			Grid.SetColumn(lName, 1);
 			Grid.SetColumn(steamID, 2);
 			Grid.SetColumn(cheatList, 3);
@@ -573,10 +584,10 @@ namespace DangerZoneHackerTracker
 			return image;
 		}
 
-		private string GetProfilePictureURL(string url)
+		private async Task<string> GetProfilePictureURL(string url)
 		{
 			HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
-			using HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+			var response = (HttpWebResponse)await request.GetResponseAsync();
 
 			if (response.StatusCode == HttpStatusCode.OK)
 			{
@@ -593,7 +604,7 @@ namespace DangerZoneHackerTracker
 				}
 
 				string line;
-				while ((line = readStream.ReadLine()) != null)
+				while ((line = await readStream.ReadLineAsync()) != null)
 				{
 					var match = CommunityProfilePictureRegex.Match(line);
 					if (match.Success)
@@ -612,10 +623,10 @@ namespace DangerZoneHackerTracker
 			return string.Empty;
 		}
 
-		private Image GetProfilePicture(SteamID steam)
+		private async Task<Image> GetProfilePictureAsync(SteamID steam)
 		{
 			var url = $"http://steamcommunity.com/profiles/{steam.ConvertToUInt64()}";
-			var profilePicURL = GetProfilePictureURL(url);
+			var profilePicURL = await GetProfilePictureURL(url);
 			var image = CreateImage(profilePicURL);
 			return image;
 		}

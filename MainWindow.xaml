@@ -24,15 +24,17 @@
 			<StackPanel x:Name="StackPanel" Background="#FF232323" Margin="0,0,0,0">
 				<Grid  Margin="0,0,0,0">
 					<Grid.ColumnDefinitions>
-						<ColumnDefinition Width="2*"/>
+						<ColumnDefinition Width="0.5*"/>
+						<ColumnDefinition Width="1.5*"/>
 						<ColumnDefinition/>
 						<ColumnDefinition/>
 						<ColumnDefinition/>
+						<ColumnDefinition Width=".2*"/>
 					</Grid.ColumnDefinitions>
-					<Label Grid.Column="0">Name</Label>
-					<Label Grid.Column="1">Steam</Label>
-					<Label Grid.Column="2">Cheat List</Label>
-					<Label Grid.Column="3">Threat Level</Label>
+					<Label Grid.Column="1">Name</Label>
+					<Label Grid.Column="2">Steam</Label>
+					<Label Grid.Column="3">Cheat List</Label>
+					<Label Grid.Column="4">Threat Level</Label>
 				</Grid>
 			</StackPanel>
 		</ScrollViewer>

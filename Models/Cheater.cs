@@ -8,9 +8,8 @@ namespace DangerZoneHackerTracker
 	[Table("Cheaters")]
 	public class Cheater
 	{
-		[PrimaryKey, AutoIncrement, Column(nameof(Id))]
-		public int Id { get; set; }
 		[Column(nameof(AccountID))]
+		[Unique]
 		public uint AccountID { get; set; }
 		[Column(nameof(ThreatLevel))]
 		public int ThreatLevel { get; set; }

@@ -7,7 +7,7 @@ namespace DangerZoneHackerTracker
 {
 	class Constants
 	{
-		public const string DatabaseFilename = "Cheaters.db3";
+		public const string DatabaseFilename = "Cheaters.sq3";
 
 		public const SQLite.SQLiteOpenFlags Flags =
 		   // open the database in read/write mode
@@ -21,8 +21,9 @@ namespace DangerZoneHackerTracker
 		{
 			get
 			{
-				var basePath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-				return Path.Combine(basePath, DatabaseFilename);
+				var basePath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+				var folder = Path.Combine(basePath, "HackerTracker");
+				return Path.Combine(folder, DatabaseFilename);
 			}
 		}
 	}

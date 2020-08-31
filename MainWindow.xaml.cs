@@ -14,6 +14,11 @@ using NAudio.Wave;
 using DangerZoneHackerTracker.Models;
 using Keyboard = DangerZoneHackerTracker.Models.Keyboard;
 using Path = System.IO.Path;
+using System.Windows.Media.Imaging;
+using System.Net;
+using System.Text;
+using Microsoft.Win32;
+using SQLite;
 
 
 /*
@@ -61,8 +66,10 @@ namespace DangerZoneHackerTracker
 		Regex SteamIDRegex;
 		Regex MapNameRegex;
 		Regex CommunityURLRegex;
+		Regex CommunityProfilePictureRegex;
 		List<uint> AlertedPlayers;
 		Dictionary<uint, ConnectedUser> Users;
+		Dictionary<uint, Image> ProfilePictures;
 		string CurrentMap = "";
 
 
@@ -71,18 +78,29 @@ namespace DangerZoneHackerTracker
 		{
 			InitializeComponent();
 
-			var id = new SteamID("STEAM_0:1:29867327");
-			
 			// Initialize properties
 			Users = new Dictionary<uint, ConnectedUser>();
+			ProfilePictures = new Dictionary<uint, Image>();
 			AlertedPlayers = new List<uint>();
 			SteamIDRegex = new Regex(string.Format(@"(\\?{0}.*\\?{0}) (STEAM_\d:\d:\d+)", "\""));
 			MapNameRegex = new Regex(@"map\s+: (\w+)");
 			CommunityURLRegex = new Regex(@"(\d+)");
+			CommunityProfilePictureRegex = new Regex(string.Format(@"<link rel={0}image_src{0} href={0}(.*){0}>", '"'));
 
+			if(!Directory.Exists(Path.GetDirectoryName(Constants.DatabasePath)))
+			{
+				Directory.CreateDirectory(Path.GetDirectoryName(Constants.DatabasePath));
+			}
 			// Create Table
 			using var db = new DatabaseConnection();
 			db.CreateTable<Cheater>();
+			db.CreateTable<Settings>();
+			var setting = db.Table<Settings>().SingleOrDefault();
+			if (setting != null && setting.StatusKey != null)
+			{
+				BtnAutoStatus.Content = $"<{setting.StatusKey}>";
+				StatusKey = (Key)setting.StatusKey;
+			}
 
 			// Create a repeating timer to check the console file
 			var timer = new System.Timers.Timer(TimeSpan.FromSeconds(10).TotalMilliseconds);
@@ -209,7 +227,7 @@ namespace DangerZoneHackerTracker
 					// update the list of users in the app
 					foreach (var user in Users.Values)
 					{
-						StackPanel.Children.Add(this.CreateUserRow(user.Name, user.SteamID.Render()));
+						StackPanel.Children.Add(this.CreateUserRow(user.Name, user.SteamID));
 					}
 				});
 			}
@@ -217,19 +235,32 @@ namespace DangerZoneHackerTracker
 
 		private void ExportClicked(object sender, RoutedEventArgs e)
 		{
-			// TODO: Implement
-			ShowToastAsync(new Cheater()
+			var dialog = new SaveFileDialog();
+			dialog.FileName = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "exported_cheaters.sq3");
+			dialog.DefaultExt = ".sq3";
+			if((bool)dialog.ShowDialog())
 			{
-				LastKnownName = "KiD Fearless",
-				ThreatLevel = 10,
-				CheatList = "Aimbot, Bhop scripts, Spinbot, God"
-			});
+				File.Copy(Constants.DatabasePath, dialog.FileName);
+			}
 
-			PlayHax();
+			//dialog.Filter = "sqlite files (*.sq3)|*.sq3|All Files (*.*)|*.*";
 		}
 
 		private void ImportClicked(object sender, RoutedEventArgs e)
 		{
+			var dialog = new OpenFileDialog();
+			dialog.Filter = "sqlite files (*.sq3)|*.sq3|All Files (*.*)|*.*";
+			dialog.Multiselect = false;
+			if((bool)dialog.ShowDialog())
+			{
+				using var otherDB = new SQLiteConnection(dialog.FileName, Constants.Flags);
+				var cheaterList = otherDB.Table<Cheater>().ToList();
+				using var myDB = new DatabaseConnection();
+				foreach (var cheater in cheaterList)
+				{
+					myDB.InsertOrReplace(cheater, typeof(Cheater));
+				}
+			}
 
 			// TODO: Implement
 		}
@@ -298,6 +329,8 @@ namespace DangerZoneHackerTracker
 				{
 					BtnAutoStatus.Content = $"<{e.Key}>";
 					StatusKey = e.Key;
+					using var db = new DatabaseConnection();
+					db.InsertOrReplace(new Settings() { StatusKey = e.Key }, typeof(Settings));
 				}
 
 				IsTrackingStatusKey = false;
@@ -361,20 +394,25 @@ namespace DangerZoneHackerTracker
 		/// <param name="name"></param>
 		/// <param name="steamid"></param>
 		/// <returns></returns>
-		private Grid CreateUserRow(string name, string steamid)
+		private Grid CreateUserRow(string name, SteamID steamid)
 		{
 			/*
-			 *	<Label Grid.Column="0">Name</Label>
-				<Label Grid.Column="1">Steam</Label>
-				<Label Grid.Column="2">Cheat List</Label>
-				<Label Grid.Column="3">Threat Level</Label>
-				<Label Grid.Column="4">Add</Label>
+			 *	<Label Grid.Column="0">pic</Label>
+			 *	<Label Grid.Column="1">Name</Label>
+				<Label Grid.Column="2">Steam</Label>
+				<Label Grid.Column="3">Cheat List</Label>
+				<Label Grid.Column="4">Threat Level</Label>
+				<Label Grid.Column="5">Add</Label>
 			*/
 			Grid grid = new Grid();
 			//column definitions have to be unique... so this exists
 			grid.ColumnDefinitions.Add(new ColumnDefinition()
 			{
-				Width = new GridLength(2, GridUnitType.Star)
+				Width = new GridLength(0.5, GridUnitType.Star)
+			});
+			grid.ColumnDefinitions.Add(new ColumnDefinition()
+			{
+				Width = new GridLength(1.5, GridUnitType.Star)
 			});
 			grid.ColumnDefinitions.Add(new ColumnDefinition()
 			{
@@ -396,19 +434,38 @@ namespace DangerZoneHackerTracker
 			// create our controls
 			Label lName = new Label()
 			{
-				Content = name
+				Content = name.Replace("_", "__"),
+				Margin = new Thickness(0.0, 48/4, 48/4, 5.0)
 			};
 			// single underscores have special meanings and have to be escaped
 			Label steamID = new Label()
 			{
-				Content = steamid.Replace("_", "__")
+				Content = steamid.Render(false).Replace("_", "__"),
+				Margin = new Thickness(0.0, 48 / 4, 48 / 4, 5.0)
+
 			};
-			var cheatList = new TextBox();
-			var threatLevel = new TextBox();
+			var cheatList = new TextBox()
+			{
+				Margin = new Thickness(5.0, 0.0, 5.0, 0.0)
+			};
+			var threatLevel = new TextBox()
+			{
+				Margin = new Thickness(5.0, 0.0, 5.0, 0.0)
+			};
+			var profilePicture = GetProfilePicture(steamid);
+			profilePicture.MouseDown += (object sender, MouseButtonEventArgs e) =>
+			{
+				try
+				{
+					Process.Start(new ProcessStartInfo($"http://steamcommunity.com/profiles/{steamid.ConvertToUInt64()}") { UseShellExecute = true });
+				}
+				catch { }
+			};
 
 			var addButton = new Button()
 			{
-				Content = "Add"
+				Content = "Add",
+				Margin = new Thickness(0, 0, 10, 0)
 			};
 
 			// since we aren't tracking any of our objects outside of this function we create an anonymous function so we can reference the intended objects.
@@ -429,6 +486,7 @@ namespace DangerZoneHackerTracker
 			};
 
 			// add our controls to the grid
+			grid.Children.Add(profilePicture);
 			grid.Children.Add(lName);
 			grid.Children.Add(steamID);
 			grid.Children.Add(cheatList);
@@ -436,13 +494,78 @@ namespace DangerZoneHackerTracker
 			grid.Children.Add(addButton);
 
 			// tell our controls which grid column they should use.
-			Grid.SetColumn(lName, 0);
-			Grid.SetColumn(steamID, 1);
-			Grid.SetColumn(cheatList, 2);
-			Grid.SetColumn(threatLevel, 3);
-			Grid.SetColumn(addButton, 4);
+			Grid.SetColumn(profilePicture, 0);
+			Grid.SetColumn(lName, 1);
+			Grid.SetColumn(steamID, 2);
+			Grid.SetColumn(cheatList, 3);
+			Grid.SetColumn(threatLevel, 4);
+			Grid.SetColumn(addButton, 5);
 
 			return grid;
+		}
+
+		private Image CreateImage(string source, double width = 48.0, double height = 48.0)
+		{
+			var image = new Image();
+
+			BitmapImage bitmap = new BitmapImage();
+			bitmap.BeginInit();
+			bitmap.UriSource = new Uri(source, UriKind.Absolute);
+			bitmap.EndInit();
+
+			image.Source = bitmap;
+			image.Width = width;
+			image.Height = height;
+
+			return image;
+		}
+
+		private string GetProfilePictureURL(string url)
+		{
+			HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
+			using HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+
+			if (response.StatusCode == HttpStatusCode.OK)
+			{
+				Stream receiveStream = response.GetResponseStream();
+				StreamReader readStream;
+
+				if (string.IsNullOrWhiteSpace(response.CharacterSet))
+				{
+					readStream = new StreamReader(receiveStream);
+				}
+				else
+				{
+					readStream = new StreamReader(receiveStream, Encoding.GetEncoding(response.CharacterSet));
+				}
+
+				string line;
+				while((line = readStream.ReadLine()) != null)
+				{
+					var match = CommunityProfilePictureRegex.Match(line);
+					if(match.Success)
+					{
+						response.Close();
+						readStream.Close();
+
+						return match.Groups[1].Value;
+					}
+				}
+
+				response.Close();
+				readStream.Close();
+			}
+
+			return string.Empty;
+		}
+
+		private Image GetProfilePicture(SteamID steam)
+		{
+
+			var url = $"http://steamcommunity.com/profiles/{steam.ConvertToUInt64()}";
+			var profilePicURL = GetProfilePictureURL(url);
+			var image = CreateImage(profilePicURL);
+			return image;
 		}
 	}
 }

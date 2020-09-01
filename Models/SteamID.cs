@@ -586,7 +586,7 @@ namespace DangerZoneHackerTracker
 				throw new InvalidOperationException( "Only Clan IDs can be converted to Chat IDs." );
 			}
 
-			SteamID chatID = ConvertToUInt64();
+			SteamID chatID = new SteamID(ConvertToUInt64());
 			chatID.AccountInstance = ( uint )ChatInstanceFlags.Clan;
 			chatID.AccountType = EAccountType.Chat;
 			return chatID;
@@ -602,7 +602,7 @@ namespace DangerZoneHackerTracker
 		{
 			if ( IsChatAccount && AccountInstance == (uint)ChatInstanceFlags.Clan )
 			{
-				groupID = ConvertToUInt64();
+				groupID = new SteamID(ConvertToUInt64());
 				groupID.AccountType = EAccountType.Clan;
 				groupID.AccountInstance = 0;
 				return true;
@@ -675,32 +675,6 @@ namespace DangerZoneHackerTracker
 		/// A <see cref="string"/> that represents this instance.
 		/// </returns>
 		public override string ToString() => Render();
-
-		/// <summary>
-		/// Performs an implicit conversion from <see cref="SteamKit2.SteamID"/> to <see cref="ulong"/>.
-		/// </summary>
-		/// <param name="sid">The SteamID.</param>
-		/// <returns>
-		/// The result of the conversion.
-		/// </returns>
-		public static implicit operator ulong( SteamID sid )
-		{
-			if ( sid is null )
-			{
-				throw new ArgumentNullException( nameof(sid) );
-			}
-
-			return sid.steamid.Data;
-		}
-
-		/// <summary>
-		/// Performs an implicit conversion from <see cref="ulong"/> to <see cref="SteamID"/>.
-		/// </summary>
-		/// <param name="id">A 64bit integer representing the SteamID.</param>
-		/// <returns>
-		/// The result of the conversion.
-		/// </returns>
-		public static implicit operator SteamID( ulong id ) => new SteamID( id );
 
 		/// <summary>
 		/// Determines whether the specified <see cref="object"/> is equal to this instance.

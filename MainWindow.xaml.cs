@@ -20,6 +20,7 @@ using System.Text;
 using Microsoft.Win32;
 using SQLite;
 using System.Threading.Tasks;
+using System.Windows.Media;
 
 
 /*
@@ -49,10 +50,11 @@ players : 9 humans, 3 bots (16/0 max) (not hibernating)
 */
 namespace DangerZoneHackerTracker
 {
-	struct ConnectedUser
+	class ConnectedUser
 	{
 		public string Name;
 		public SteamID SteamID;
+		public bool IsCheater;
 	}
 
 	/// <summary>
@@ -72,11 +74,13 @@ namespace DangerZoneHackerTracker
 		Dictionary<uint, ConnectedUser> Users;
 		Dictionary<uint, Grid> UserRows;
 		string CurrentMap = "";
+		public static MainWindow Current;
 
 
 		[PermissionSet(SecurityAction.Demand, Name = "FullTrust")]
 		public MainWindow()
 		{
+			Current = this;
 			InitializeComponent();
 
 			// Initialize properties
@@ -194,7 +198,6 @@ namespace DangerZoneHackerTracker
 
 				// TODO: Write HashMap implementation of Users.
 				// Check if user is already in list of connected users.
-				tempUsers[user.SteamID.AccountID] = user;
 
 				// create a Cheater table object to work from. Changes to this object will be reflected in the db.
 				var cheater = db.Table<Cheater>().SingleOrDefault(e => e.AccountID == user.SteamID.AccountID);
@@ -208,9 +211,12 @@ namespace DangerZoneHackerTracker
 						ShowToastAsync(cheater);
 						PlayHax();
 						AlertedPlayers.Add(user.SteamID.AccountID);
+						user.IsCheater = true;
 						db.InsertOrReplace(cheater, typeof(Cheater));
 					}
 				}
+
+				tempUsers[user.SteamID.AccountID] = user;
 			}
 
 			//clear the file to save on performance.
@@ -219,21 +225,23 @@ namespace DangerZoneHackerTracker
 
 			if (tempUsers.Count != Users.Count && tempUsers.Count != 0)
 			{
-				var keys = UserRows.Keys.Where(user => !tempUsers.ContainsKey(user));
-				foreach (var key in keys)
-				{
-					StackPanel.Children.Remove(UserRows[key]);
-				}
-				Users = tempUsers;
 				// can only update controls from the main thread, which we are not in. So we invoke an inline function to do it for us.
 				this.Dispatcher.Invoke(async () =>
 				{
+					var keys = UserRows.Keys.Where(user => !tempUsers.ContainsKey(user));
+					foreach (var key in keys)
+					{
+						StackPanel.Children.Remove(UserRows[key]);
+					}
+					Users = tempUsers;
 					// remove all children except the headers
 					StackPanel.Children.RemoveRange(1, StackPanel.Children.Count - 2);
 					// update the list of users in the app
 					foreach (var user in Users.Values)
 					{
-						StackPanel.Children.Add(await this.CreateUserRowAsync(user.Name, user.SteamID));
+						var row = await this.CreateUserRowAsync(user.Name, user);
+						UserRows[user.SteamID.AccountID] = row;
+						StackPanel.Children.Add(row);
 					}
 				});
 			}
@@ -453,7 +461,7 @@ namespace DangerZoneHackerTracker
 		/// <param name="name"></param>
 		/// <param name="steamid"></param>
 		/// <returns></returns>
-		private async Task<Grid> CreateUserRowAsync(string name, SteamID steamid)
+		private async Task<Grid> CreateUserRowAsync(string name, ConnectedUser user)
 		{
 			/*
 			 *	<Label Grid.Column="0">pic</Label>
@@ -464,6 +472,10 @@ namespace DangerZoneHackerTracker
 				<Label Grid.Column="5">Add</Label>
 			*/
 			Grid grid = new Grid();
+			if(user.IsCheater)
+			{
+				grid.Background = new SolidColorBrush(Color.FromRgb(160, 0, 0));
+			}
 			//column definitions have to be unique... so this exists
 			grid.ColumnDefinitions.Add(new ColumnDefinition()
 			{
@@ -499,7 +511,7 @@ namespace DangerZoneHackerTracker
 			// single underscores have special meanings and have to be escaped
 			Label steamID = new Label()
 			{
-				Content = steamid.Render(false).Replace("_", "__"),
+				Content = user.SteamID.Render(false).Replace("_", "__"),
 				Margin = new Thickness(0.0, 48 / 4, 48 / 4, 5.0)
 
 			};
@@ -514,12 +526,12 @@ namespace DangerZoneHackerTracker
 
 			//var thread = new Thread(async () =>
 			//{
-				var profilePicture = await GetProfilePictureAsync(steamid);
+				var profilePicture = await GetProfilePictureAsync(user.SteamID);
 				profilePicture.MouseDown += (object sender, MouseButtonEventArgs e) =>
 				{
 					try
 					{
-						Process.Start(new ProcessStartInfo($"http://steamcommunity.com/profiles/{steamid.ConvertToUInt64()}") { UseShellExecute = true });
+						Process.Start(new ProcessStartInfo($"http://steamcommunity.com/profiles/{user.SteamID.ConvertToUInt64()}") { UseShellExecute = true });
 					}
 					catch { }
 				};
@@ -542,7 +554,7 @@ namespace DangerZoneHackerTracker
 				db.InsertOrReplace(new Cheater()
 				{
 					LastKnownName = name,
-					AccountID = new SteamID(steamid).AccountID,
+					AccountID = user.SteamID.AccountID,
 					CheatList = cheatList.Text,
 					ThreatLevel = threat
 				});

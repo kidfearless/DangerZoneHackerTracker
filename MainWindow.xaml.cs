@@ -1,4 +1,5 @@
-﻿using System;
+﻿
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -12,8 +13,6 @@ using System.Windows.Input;
 using Notifications.Wpf.Core;
 using NAudio.Wave;
 using DangerZoneHackerTracker.Models;
-using Keyboard = DangerZoneHackerTracker.Models.Keyboard;
-using Path = System.IO.Path;
 using System.Windows.Media.Imaging;
 using System.Net;
 using System.Text;
@@ -21,6 +20,9 @@ using Microsoft.Win32;
 using SQLite;
 using System.Threading.Tasks;
 using System.Windows.Media;
+using System.Timers;
+using Keyboard = DangerZoneHackerTracker.Models.Keyboard;
+using Path = System.IO.Path;
 
 
 /*
@@ -50,12 +52,6 @@ players : 9 humans, 3 bots (16/0 max) (not hibernating)
 */
 namespace DangerZoneHackerTracker
 {
-	class ConnectedUser
-	{
-		public string Name;
-		public SteamID SteamID;
-		public bool IsCheater;
-	}
 
 	/// <summary>
 	/// Interaction logic for MainWindow.xaml
@@ -63,35 +59,45 @@ namespace DangerZoneHackerTracker
 	/// 
 	public partial class MainWindow
 	{
+		const int MAXPLAYERS = 65;
 		Key StatusKey;
 		bool IsTrackingStatusKey;
-		const string path = @"C:\Program Files (x86)\Steam\steamapps\common\Counter-Strike Global Offensive\csgo\";
-		Regex SteamIDRegex;
-		Regex MapNameRegex;
-		Regex CommunityURLRegex;
-		Regex CommunityProfilePictureRegex;
-		List<uint> AlertedPlayers;
-		Dictionary<uint, ConnectedUser> Users;
-		Dictionary<uint, Grid> UserRows;
+		readonly Regex SteamIDRegex;
+		readonly Regex MapNameRegex;
+		readonly Regex CommunityURLRegex;
+		readonly Regex CommunityProfilePictureRegex;
 		string CurrentMap = "";
-		public static MainWindow Current;
+		User[] Users = new User[MAXPLAYERS];
+		System.Timers.Timer timer;
+		int timercount = 0;
 
 
 		[PermissionSet(SecurityAction.Demand, Name = "FullTrust")]
 		public MainWindow()
 		{
-			Current = this;
 			InitializeComponent();
 
 			// Initialize properties
-			Users = new Dictionary<uint, ConnectedUser>();
-			UserRows = new Dictionary<uint, Grid>();
-			AlertedPlayers = new List<uint>();
-			SteamIDRegex = new Regex(string.Format(@"(\\?{0}.*\\?{0}) (STEAM_\d:\d:\d+)", "\""));
+			SteamIDRegex = new Regex(string.Format(@"# *\d+ *(\d+) *({0}.*{0}) *(STEAM_\d:\d:\d+)", "\""));
 			MapNameRegex = new Regex(@"map\s+: (\w+)");
 			CommunityURLRegex = new Regex(@"(\d+)");
 			CommunityProfilePictureRegex = new Regex(string.Format(@"<link rel={0}image_src{0} href={0}(.*){0}>", '"'));
 
+			InitializeDatabase();
+
+			CreateTimer();
+		}
+
+		private void CreateTimer()
+		{
+			// Create a repeating timer to check the console file
+			timer = new System.Timers.Timer(TimeSpan.FromSeconds(5).TotalMilliseconds);
+			timer.Elapsed += Timer_CheckStatus;
+			timer.Start();
+		}
+
+		private void InitializeDatabase()
+		{
 			if (!Directory.Exists(Path.GetDirectoryName(Constants.DatabasePath)))
 			{
 				Directory.CreateDirectory(Path.GetDirectoryName(Constants.DatabasePath));
@@ -100,37 +106,15 @@ namespace DangerZoneHackerTracker
 			using var db = new DatabaseConnection();
 			db.CreateTable<Cheater>();
 			db.CreateTable<Settings>();
+
 			var setting = db.Table<Settings>().SingleOrDefault();
 			if (setting != null && setting.StatusKey != null)
 			{
 				BtnAutoStatus.Content = $"<{setting.StatusKey}>";
 				StatusKey = (Key)setting.StatusKey;
 			}
-
-			// Create a repeating timer to check the console file
-			var timer = new System.Timers.Timer(TimeSpan.FromSeconds(10).TotalMilliseconds);
-			timer.Elapsed += Timer_CheckStatus;
-			timer.Start();
-
-			// check console on program run
-			Timer_CheckStatus(null, null);
 		}
 
-		/// <summary>
-		/// Wrapper for sending notifications.
-		/// </summary>
-		/// <param name="cheater">Player that we are notifying for</param>
-		public async void ShowToastAsync(Cheater cheater)
-		{
-			var notificationManager = new NotificationManager();
-			await notificationManager.ShowAsync(new NotificationContent()
-			{
-				Title = $"Hacker {cheater.LastKnownName} Found In Game",
-				Message = $"Threat Level: {cheater.ThreatLevel}\n" +
-							$"Known Cheats: {cheater.CheatList}",
-				Type = NotificationType.Error
-			});
-		}
 		/// <summary>
 		/// Callback for our repeating timer. Sends the key presses and reads the console file.
 		/// </summary>
@@ -141,7 +125,7 @@ namespace DangerZoneHackerTracker
 			try
 			{
 				// Do a delayed read on the console after we've done a status update.
-				new Timer(ReadConsole, null, TimeSpan.FromSeconds(0.2).Milliseconds, Timeout.Infinite);
+				new System.Threading.Timer(ReadConsole, sender, TimeSpan.FromSeconds(0.2).Milliseconds, Timeout.Infinite);
 
 				// we have a key bound to status and are in game, then start activating our status key
 				if (StatusKey != Key.None && Models.Window.GetActiveWindowTitle() == "Counter-Strike: Global Offensive")
@@ -150,7 +134,7 @@ namespace DangerZoneHackerTracker
 					Keyboard.SendKey(KeyConvert.ToDirectXKeyCode(StatusKey), true, Keyboard.InputType.Keyboard);
 				}
 			}
-			catch (Exception _) { }
+			catch { }
 		}
 
 		/// <summary>
@@ -159,96 +143,175 @@ namespace DangerZoneHackerTracker
 		/// <param name="nill">Unused parameter that the Timer class requires</param>
 		private void ReadConsole(object nill)
 		{
+			//timercount++;
+			//if (timercount >= 2)
+			//{
+			//	timer.Stop();
+			//}
 			// Open the file in a way that won't bother csgo.
-			using var stream = File.Open(Path.Combine(path, "console.log"), FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite);
+			var path = Models.Window.GetProcessLocation("csgo");
+			if (string.IsNullOrEmpty(path))
+			{
+				return;
+			}
+			var dir = Path.Combine(Path.GetDirectoryName(path), "csgo");
+			using var stream = File.Open(Path.Combine(dir, "console.log"), FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite);
 			using var reader = new StreamReader(stream, true);
-			if (reader.BaseStream.Length < 0)
+			if (reader.BaseStream.Length <= 0)
 			{
 				return;
 			}
 
 			using var db = new DatabaseConnection();
-			var tempUsers = new Dictionary<uint, ConnectedUser>();
+			var tempUsers = new User[MAXPLAYERS];
 
 			string line;
 			// iterate each line of the file
 			while ((line = reader.ReadLine()) != null)
 			{
+				if(Debugger.IsAttached)
+				{
+					timer.Stop();
+				}
 				var mapMatch = MapNameRegex.Match(line);
 				// The first group match will be the current map on the server
 				if (mapMatch.Success && mapMatch.Groups[1].Value != CurrentMap)
 				{
-					AlertedPlayers.Clear();
+					OnMapChanged(oldMap: CurrentMap, currentMap: mapMatch.Groups[1].Value);
 					CurrentMap = mapMatch.Groups[1].Value;
 				}
 
 				var match = SteamIDRegex.Match(line);
 				// check for an exact match
-				if (!match.Success || match.Groups.Count != 3)
+				if (!match.Success)
 				{
 					continue;
 				}
 
 				// create our user from the match. Index 0 is the full match, every index after is our groups
-				ConnectedUser user = new ConnectedUser()
+				User user = new User()
 				{
-					Name = match.Groups[1].Value,
-					SteamID = new SteamID(match.Groups[2].Value)
+					Index = Convert.ToInt32(match.Groups[1].Value),
+					Name = match.Groups[2].Value,
+					SteamID = new SteamID(match.Groups[3].Value)
 				};
 
-				// TODO: Write HashMap implementation of Users.
-				// Check if user is already in list of connected users.
 
-				// create a Cheater table object to work from. Changes to this object will be reflected in the db.
-				var cheater = db.Table<Cheater>().SingleOrDefault(e => e.AccountID == user.SteamID.AccountID);
-				if (cheater != null)
+				if (Users[user.Index] != null)
 				{
-					// Check if we've alerted them to this player this map.
-					if (!AlertedPlayers.Contains(user.SteamID.AccountID))
+					if (Users[user.Index].SteamID.AccountID != user.SteamID.AccountID)
 					{
-						// should i show their current name or their saved name?
-						cheater.LastKnownName = user.Name;
-						ShowToastAsync(cheater);
+						OnClientDisconnected(Users[user.Index]);
+						Users[user.Index] = null;
+						OnClientConnected(user);
+					}
+					// handle edge case
+					else if (!user.Alerted && user.IsCheater)
+					{
+						//ShowToastAsync(cheater);
 						PlayHax();
-						AlertedPlayers.Add(user.SteamID.AccountID);
-						user.IsCheater = true;
-						db.InsertOrReplace(cheater, typeof(Cheater));
+						user.Alerted = true;
 					}
 				}
+				else if (Users[user.Index] == null)
+				{
+					OnClientConnected(user);
+				}
 
-				tempUsers[user.SteamID.AccountID] = user;
+				tempUsers[user.Index] = user;
+				Users[user.Index] = user;
+			}
+
+			var disconnectedUsers = Users.Where(t => t != null).ToList();
+			for(int i = 0; i < Users.Length; i++)
+			{
+				var user = Users[i];
+				if (user == null)
+				{
+					continue;
+				}
+				for(int j = 0; j < tempUsers.Length; j++)
+				{
+					var tempUser = tempUsers[j];
+					if(tempUser == null)
+					{
+						continue;
+					}
+
+					if(user.SteamID.AccountID == tempUser.SteamID.AccountID)
+					{
+						var _ = disconnectedUsers.Remove(user);
+						break;
+					}
+				}
+			}
+
+			foreach (var dcUser in disconnectedUsers)
+			{
+				OnClientDisconnected(dcUser);
 			}
 
 			//clear the file to save on performance.
-			stream.SetLength(0);
+			//stream.SetLength(0);
 			stream.Close();
 
-			if (tempUsers.Count != Users.Count && tempUsers.Count != 0)
+			if (Debugger.IsAttached)
 			{
-				// can only update controls from the main thread, which we are not in. So we invoke an inline function to do it for us.
-				this.Dispatcher.Invoke(async () =>
-				{
-					var keys = UserRows.Keys.Where(user => !tempUsers.ContainsKey(user));
-					foreach (var key in keys)
-					{
-						StackPanel.Children.Remove(UserRows[key]);
-					}
-					Users = tempUsers;
-					// remove all children except the headers
-					StackPanel.Children.RemoveRange(1, StackPanel.Children.Count - 2);
-					// update the list of users in the app
-					foreach (var user in Users.Values)
-					{
-						var row = await this.CreateUserRowAsync(user.Name, user);
-						UserRows[user.SteamID.AccountID] = row;
-						StackPanel.Children.Add(row);
-					}
-				});
+				timer.Start();
 			}
 		}
 
+		private async void OnClientConnected(User user)
+		{
+			var db = new DatabaseConnection();
+			// create a Cheater table object to work from. Changes to this object will be reflected in the db.
+			var cheater = db.Table<Cheater>().SingleOrDefault(e => e.AccountID == user.SteamID.AccountID);
+			if (cheater != null)
+			{
+				cheater.LastKnownName = user.Name;
+				ShowToastAsync(cheater);
+				PlayHax();
+				user.Alerted = true;
+				user.IsCheater = true;
+				db.InsertOrReplace(cheater, typeof(Cheater));
+			}
+
+			await this.Dispatcher.Invoke(async () =>
+			{
+				user.Grid = await CreateUserRowAsync(user);
+				StackPanel.Children.Add(user.Grid);
+			});
+		}
+
+		private void OnClientDisconnected(User user)
+		{
+			user = Users[user.Index];
+			// can only update controls from the main thread, which we are not in. So we invoke an inline function to do it for us.
+			this.Dispatcher.Invoke(() =>
+			{
+				if (user.Grid != null)
+				{
+					StackPanel.Children.Remove(user.Grid);
+				}
+			});
+		}
+
+		private void OnMapChanged(string oldMap, string currentMap)
+		{
+			foreach (var user in Users)
+			{
+				if (user != null)
+				{
+					user.Alerted = false;
+				}
+			}
+		}
+
+		#region event handlers
 		private void ExportClicked(object sender, RoutedEventArgs e)
 		{
+			ShowToastAsync("test", "test", duration: TimeSpan.FromSeconds(10));
+
 			var dialog = new SaveFileDialog();
 			dialog.FileName = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "exported_cheaters.sq3");
 			dialog.DefaultExt = ".sq3";
@@ -259,7 +322,7 @@ namespace DangerZoneHackerTracker
 				// Try to save the database file
 				try
 				{
-					if(File.Exists(dialog.FileName))
+					if (File.Exists(dialog.FileName))
 					{
 						File.Delete(dialog.FileName);
 					}
@@ -376,6 +439,7 @@ namespace DangerZoneHackerTracker
 				IsTrackingStatusKey = false;
 			}
 		}
+		#endregion
 		#region Placeholder handlers
 		private void SteamID_GotFocus(object sender, RoutedEventArgs e)
 		{
@@ -437,7 +501,32 @@ namespace DangerZoneHackerTracker
 			}
 		}
 		#endregion
-
+		#region helper functions
+		/// <summary>
+		/// Wrapper for sending notifications.
+		/// </summary>
+		/// <param name="cheater">Player that we are notifying for</param>
+		public async void ShowToastAsync(Cheater cheater)
+		{
+			var notificationManager = new NotificationManager();
+			await notificationManager.ShowAsync(new NotificationContent()
+			{
+				Title = $"Hacker {cheater.LastKnownName} Found In Game",
+				Message = $"Threat Level: {cheater.ThreatLevel}\n" +
+							$"Known Cheats: {cheater.CheatList}",
+				Type = NotificationType.Error
+			}, expirationTime: TimeSpan.FromSeconds(10));
+		}
+		public async void ShowToastAsync(string title = "", string message = "", NotificationType type = NotificationType.Error, TimeSpan? duration = null)
+		{
+			var notificationManager = new NotificationManager();
+			await notificationManager.ShowAsync(new NotificationContent()
+			{
+				Title = title,
+				Message = message,
+				Type = type
+			}, expirationTime: duration);
+		}
 		/// <summary>
 		/// Stock to play a particular sound
 		/// </summary>
@@ -447,13 +536,11 @@ namespace DangerZoneHackerTracker
 			var audioFile = new AudioFileReader("Resources/haaaaxedit.mp3");
 			outputDevice.PlaybackStopped += (object sender, StoppedEventArgs e) =>
 			{
-				outputDevice.Dispose();
-				outputDevice = null;
 				audioFile.Dispose();
 				audioFile = null;
 			};
 			outputDevice.Init(audioFile);
-			outputDevice.Play();
+			//outputDevice.Play();
 		}
 		/// <summary>
 		/// Helper method to create a row in the grid with the data we want in it.
@@ -461,7 +548,7 @@ namespace DangerZoneHackerTracker
 		/// <param name="name"></param>
 		/// <param name="steamid"></param>
 		/// <returns></returns>
-		private async Task<Grid> CreateUserRowAsync(string name, ConnectedUser user)
+		private async Task<Grid> CreateUserRowAsync(User user)
 		{
 			/*
 			 *	<Label Grid.Column="0">pic</Label>
@@ -472,7 +559,7 @@ namespace DangerZoneHackerTracker
 				<Label Grid.Column="5">Add</Label>
 			*/
 			Grid grid = new Grid();
-			if(user.IsCheater)
+			if (user.IsCheater)
 			{
 				grid.Background = new SolidColorBrush(Color.FromRgb(160, 0, 0));
 			}
@@ -505,7 +592,7 @@ namespace DangerZoneHackerTracker
 			// create our controls
 			Label lName = new Label()
 			{
-				Content = name.Replace("_", "__"),
+				Content = user.Name.Replace("_", "__"),
 				Margin = new Thickness(0.0, 48 / 4, 48 / 4, 5.0)
 			};
 			// single underscores have special meanings and have to be escaped
@@ -526,17 +613,17 @@ namespace DangerZoneHackerTracker
 
 			//var thread = new Thread(async () =>
 			//{
-				var profilePicture = await GetProfilePictureAsync(user.SteamID);
-				profilePicture.MouseDown += (object sender, MouseButtonEventArgs e) =>
+			var profilePicture = await GetProfilePictureAsync(user.SteamID);
+			profilePicture.MouseDown += (object sender, MouseButtonEventArgs e) =>
+			{
+				try
 				{
-					try
-					{
-						Process.Start(new ProcessStartInfo($"http://steamcommunity.com/profiles/{user.SteamID.ConvertToUInt64()}") { UseShellExecute = true });
-					}
-					catch { }
-				};
-				grid.Children.Add(profilePicture);
-				Grid.SetColumn(profilePicture, 0);
+					Process.Start(new ProcessStartInfo($"http://steamcommunity.com/profiles/{user.SteamID.ConvertToUInt64()}") { UseShellExecute = true });
+				}
+				catch { }
+			};
+			grid.Children.Add(profilePicture);
+			Grid.SetColumn(profilePicture, 0);
 
 			//});
 
@@ -553,7 +640,7 @@ namespace DangerZoneHackerTracker
 				int.TryParse(threatLevel.Text, out int threat);
 				db.InsertOrReplace(new Cheater()
 				{
-					LastKnownName = name,
+					LastKnownName = user.Name,
 					AccountID = user.SteamID.AccountID,
 					CheatList = cheatList.Text,
 					ThreatLevel = threat
@@ -642,5 +729,6 @@ namespace DangerZoneHackerTracker
 			var image = CreateImage(profilePicURL);
 			return image;
 		}
+		#endregion
 	}
 }

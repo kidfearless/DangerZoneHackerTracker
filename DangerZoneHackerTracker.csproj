@@ -7,6 +7,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Notifications.Wpf.Core\**" />
+    <EmbeddedResource Remove="Notifications.Wpf.Core\**" />
+    <None Remove="Notifications.Wpf.Core\**" />
+    <Page Remove="Notifications.Wpf.Core\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Remove="haaaaxedit.mp3" />
   </ItemGroup>
 
@@ -22,12 +29,15 @@
     <PackageReference Include="InputSimulator" Version="1.0.4" />
     <PackageReference Include="Microsoft.Toolkit.Uwp.Notifications" Version="6.1.1" />
     <PackageReference Include="NAudio" Version="1.10.0" />
-    <PackageReference Include="Notifications.Wpf.Core" Version="1.3.1" />
     <PackageReference Include="sqlite-net-pcl" Version="1.7.335" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="Controllers\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="Notifications.Wpf.Core\Notifications.Wpf.Core.csproj" />
   </ItemGroup>
 
 </Project>

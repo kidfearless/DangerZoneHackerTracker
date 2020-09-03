@@ -80,7 +80,7 @@ namespace DangerZoneHackerTracker
 			InitializeComponent();
 
 			// Initialize properties
-			SteamIDRegex = new Regex(string.Format(@"# *\d+ *(\d+) *({0}.*{0}) *(STEAM_\d:\d:\d+)", "\""));
+			SteamIDRegex = new Regex(string.Format(@"# *\d+ *(\d+) *{0}(.*){0} *(STEAM_\d:\d:\d+)", "\""));
 			MapNameRegex = new Regex(@"map\s+: (\w+)");
 			CommunityURLRegex = new Regex(@"(\d+)");
 			CommunityProfilePictureRegex = new Regex(string.Format(@"<link rel={0}image_src{0} href={0}(.*){0}>", '"'));
@@ -267,8 +267,12 @@ namespace DangerZoneHackerTracker
 			var cheater = db.Table<Cheater>().SingleOrDefault(e => e.AccountID == user.SteamID.AccountID);
 			if (cheater != null)
 			{
+				ShowToastAsync(
+					title: $"Hacker {cheater.LastKnownName} Found In Game",
+					message:$"Threat Level: {cheater.ThreatLevel}\n" +
+							$"Known Cheats: {cheater.CheatList}",
+					duration: TimeSpan.FromSeconds(10.0));
 				cheater.LastKnownName = user.Name;
-				ShowToastAsync(cheater);
 				PlayHax();
 				user.Alerted = true;
 				user.Cheater = cheater;
@@ -310,8 +314,6 @@ namespace DangerZoneHackerTracker
 		#region event handlers
 		private void ExportClicked(object sender, RoutedEventArgs e)
 		{
-			ShowToastAsync("test", "test", duration: TimeSpan.FromSeconds(10));
-
 			var dialog = new SaveFileDialog();
 			dialog.FileName = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "exported_cheaters.sq3");
 			dialog.DefaultExt = ".sq3";

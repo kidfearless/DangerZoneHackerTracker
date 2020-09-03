@@ -215,7 +215,11 @@ namespace DangerZoneHackerTracker
 					// handle edge case
 					else if (!user.Alerted && user.Cheater != null)
 					{
-						//ShowToastAsync(cheater);
+						ShowToastAsync(
+						title: $"Hacker {user.Name} Found In Game",
+						message: $"Threat Level: {user.Cheater.ThreatLevel}\n" +
+							$"Known Cheats: {user.Cheater.CheatList}\n",
+						duration: TimeSpan.FromSeconds(10.0));
 						PlayHax();
 						user.Alerted = true;
 					}
@@ -268,9 +272,10 @@ namespace DangerZoneHackerTracker
 			if (cheater != null)
 			{
 				ShowToastAsync(
-					title: $"Hacker {cheater.LastKnownName} Found In Game",
+					title: $"Hacker {user.Name} Found In Game",
 					message:$"Threat Level: {cheater.ThreatLevel}\n" +
-							$"Known Cheats: {cheater.CheatList}",
+							$"Known Cheats: {cheater.CheatList}\n" +
+							$"Previous Name: {cheater.LastKnownName}",
 					duration: TimeSpan.FromSeconds(10.0));
 				cheater.LastKnownName = user.Name;
 				PlayHax();

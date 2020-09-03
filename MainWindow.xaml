@@ -6,7 +6,11 @@
 		xmlns:local="clr-namespace:DangerZoneHackerTracker"
 		xmlns:controls="clr-namespace:Biaui.Controls;assembly=Biaui"
 		mc:Ignorable="d"
-		Title="Danger Zone Hacker Tracker" Height="516" Width="1352" KeyDown="OnKeyDown">
+		Title="Danger Zone Hacker Tracker" Height="516" Width="1352" KeyDown="OnKeyDown"
+					>
+	<controls:BiaWindow.Icon>
+		<ImageBrush ImageSource="/Resources/DZ_ICON.png" Stretch="Fill"/>
+	</controls:BiaWindow.Icon>
 
 	<Grid Margin="0,0,10,-6">
 		<Grid Margin="32,10,32,0" Panel.ZIndex="-5" RenderTransformOrigin="0.499,0.288" Height="118" VerticalAlignment="Top">

@@ -146,7 +146,7 @@ namespace DangerZoneHackerTracker
 		private void ReadConsole(object nill)
 		{
 #if DEBUG
-			if(Debug_IsInCallback)
+			if (Debug_IsInCallback)
 			{
 				return;
 			}
@@ -180,11 +180,11 @@ namespace DangerZoneHackerTracker
 			// iterate each line of the file
 			while ((line = reader.ReadLine()) != null)
 			{
-				if(CheckForMapChange(line))
+				if (CheckForMapChange(line))
 				{
 					continue;
 				}
-				
+
 				var match = SteamIDRegex.Match(line);
 				// check for an exact match
 				if (!match.Success)
@@ -201,7 +201,7 @@ namespace DangerZoneHackerTracker
 				};
 
 				var foundUser = tempUsers.FirstOrDefault(u => u.SteamID.AccountID == user.SteamID.AccountID);
-				if(foundUser != null)
+				if (foundUser != null)
 				{
 					tempUsers.Remove(foundUser);
 				}
@@ -214,14 +214,11 @@ namespace DangerZoneHackerTracker
 						OnClientConnected(user);
 					}
 					// handle edge case
-					else 
+					else if (!user.Alerted && user.Cheater != null)
 					{
-						if (!user.Alerted && user.IsCheater)
-						{
-							//ShowToastAsync(cheater);
-							PlayHax();
-							user.Alerted = true;
-						}
+						//ShowToastAsync(cheater);
+						PlayHax();
+						user.Alerted = true;
 					}
 				}
 				else if (Users[user.Index] == null)
@@ -232,7 +229,7 @@ namespace DangerZoneHackerTracker
 				Users[user.Index] = user;
 			}
 
-			if(preCount != 0)
+			if (preCount != 0)
 			{
 				foreach (var user in tempUsers)
 				{
@@ -245,7 +242,6 @@ namespace DangerZoneHackerTracker
 			stream.SetLength(0);
 #endif
 			stream.Close();
-
 #if DEBUG
 			Debug_IsInCallback = false;
 #endif
@@ -276,11 +272,11 @@ namespace DangerZoneHackerTracker
 				ShowToastAsync(cheater);
 				PlayHax();
 				user.Alerted = true;
-				user.IsCheater = true;
+				user.Cheater = cheater;
 				db.InsertOrReplace(cheater, typeof(Cheater));
 			}
 
-			await this.Dispatcher.Invoke(async () =>
+			await Dispatcher.Invoke(async () =>
 			{
 				user.Grid = await CreateUserRowAsync(user);
 				StackPanel.Children.Add(user.Grid);
@@ -290,7 +286,7 @@ namespace DangerZoneHackerTracker
 		private void OnClientDisconnected(User user)
 		{
 			// can only update controls from the main thread, which we are not in. So we invoke an inline function to do it for us.
-			this.Dispatcher.Invoke(() =>
+			Dispatcher.Invoke(() =>
 			{
 				if (user.Grid != null)
 				{
@@ -564,7 +560,7 @@ namespace DangerZoneHackerTracker
 				<Label Grid.Column="5">Add</Label>
 			*/
 			Grid grid = new Grid();
-			if (user.IsCheater)
+			if (user.Cheater != null)
 			{
 				grid.Background = new SolidColorBrush(Color.FromRgb(160, 0, 0));
 			}
@@ -609,15 +605,16 @@ namespace DangerZoneHackerTracker
 			};
 			var cheatList = new TextBox()
 			{
-				Margin = new Thickness(5.0, 0.0, 5.0, 0.0)
+				Margin = new Thickness(5.0, 0.0, 5.0, 0.0),
+				Text = user.Cheater != null ? user.Cheater.CheatList : ""
 			};
 			var threatLevel = new TextBox()
 			{
-				Margin = new Thickness(5.0, 0.0, 5.0, 0.0)
+				Margin = new Thickness(5.0, 0.0, 5.0, 0.0),
+				Text = user.Cheater != null ? user.Cheater.ThreatLevel.ToString() : ""
+
 			};
 
-			//var thread = new Thread(async () =>
-			//{
 			var profilePicture = await GetProfilePictureAsync(user.SteamID);
 			profilePicture.MouseDown += (object sender, MouseButtonEventArgs e) =>
 			{
@@ -629,8 +626,6 @@ namespace DangerZoneHackerTracker
 			};
 			grid.Children.Add(profilePicture);
 			Grid.SetColumn(profilePicture, 0);
-
-			//});
 
 			var addButton = new Button()
 			{

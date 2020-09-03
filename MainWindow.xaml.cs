@@ -69,7 +69,6 @@ namespace DangerZoneHackerTracker
 		string CurrentMap = "";
 		User[] Users = new User[MAXPLAYERS];
 		System.Timers.Timer timer;
-		int timercount = 0;
 #if DEBUG
 		bool Debug_IsInCallback = false;
 #endif
@@ -440,6 +439,7 @@ namespace DangerZoneHackerTracker
 				IsTrackingStatusKey = false;
 			}
 		}
+
 		#endregion
 		#region Placeholder handlers
 		private void SteamID_GotFocus(object sender, RoutedEventArgs e)
@@ -541,7 +541,7 @@ namespace DangerZoneHackerTracker
 				audioFile = null;
 			};
 			outputDevice.Init(audioFile);
-			//outputDevice.Play();
+			outputDevice.Play();
 		}
 		/// <summary>
 		/// Helper method to create a row in the grid with the data we want in it.
@@ -612,7 +612,6 @@ namespace DangerZoneHackerTracker
 			{
 				Margin = new Thickness(5.0, 0.0, 5.0, 0.0),
 				Text = user.Cheater != null ? user.Cheater.ThreatLevel.ToString() : ""
-
 			};
 
 			var profilePicture = await GetProfilePictureAsync(user.SteamID);
@@ -730,5 +729,6 @@ namespace DangerZoneHackerTracker
 			return image;
 		}
 		#endregion
+
 	}
 }

@@ -6,19 +6,58 @@
 		xmlns:local="clr-namespace:DangerZoneHackerTracker"
 		xmlns:controls="clr-namespace:Biaui.Controls;assembly=Biaui"
 		mc:Ignorable="d"
-		Title="Danger Zone Cheater Tracker" Height="516" Width="800" KeyDown="OnKeyDown">
+		Title="Danger Zone Cheater Tracker" Height="516" Width="1352" KeyDown="OnKeyDown">
 
 	<Grid Margin="0,0,10,-6">
-		<Grid.ColumnDefinitions>
-		</Grid.ColumnDefinitions>
-		<Button x:Name="BtnAddCheater" Content="Add Cheater" HorizontalAlignment="Left" Margin="113,58,0,0" VerticalAlignment="Top" Height="66" Width="120" RenderTransformOrigin="1.635,0.554" Click="AddCheaterButtonClicked"/>
-		<Button x:Name="BtnImport" Content="Import" HorizontalAlignment="Left" Margin="398,58,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.52,1.485" Height="66" Width="120" Click="ImportClicked"/>
-		<Button x:Name="BtnExport" Content="Export" HorizontalAlignment="Left" Margin="537,58,0,0" VerticalAlignment="Top" Height="66" Width="120" Click="ExportClicked"/>
-		<TextBox x:Name="TxtSteamID" HorizontalAlignment="Left" Margin="113,10,0,0" Text="STEAM:0:1:12354847" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" GotFocus="SteamID_GotFocus" LostFocus="SteamID_LostFocus"  Height="24" />
-		<Button x:Name="BtnAutoStatus" Content="Status Key Bind" HorizontalAlignment="Left" Margin="256,58,0,0" VerticalAlignment="Top" Height="66" Width="120" RenderTransformOrigin="1.635,0.554" Click="StatusButtonClicked"/>
-		<TextBox x:Name="TxtCheats" HorizontalAlignment="Left" Margin="256,10,0,0" Text="Spinbot, Aimbot, Wallhacks" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" Height="24" GotFocus="Cheats_GotFocus" LostFocus="Cheats_LostFocus"/>
-		<TextBox x:Name="TxtThreatLevel" HorizontalAlignment="Left" Margin="398,10,0,0" Text="1-10" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" Height="24" GotFocus="ThreatLevel_GotFocus" LostFocus="ThreatLevel_LostFocus"/>
-		<TextBox x:Name="TxtName" HorizontalAlignment="Left" Margin="537,10,0,0" Text="The Suspect" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" Height="24" GotFocus="Name_GotFocus" LostFocus="Name_LostFocus"/>
+		<Grid Margin="32,10,32,0" Panel.ZIndex="-5" RenderTransformOrigin="0.499,0.288" Height="118" VerticalAlignment="Top">
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition></ColumnDefinition>
+				<ColumnDefinition></ColumnDefinition>
+				<ColumnDefinition></ColumnDefinition>
+				<ColumnDefinition></ColumnDefinition>
+			</Grid.ColumnDefinitions>
+			<Grid.RowDefinitions>
+				<RowDefinition Height="*"></RowDefinition>
+				<RowDefinition Height="1.5*"></RowDefinition>
+			</Grid.RowDefinitions>
+			<Button x:Name="BtnAddCheater" Content="Add Cheater"
+				HorizontalAlignment="Stretch" VerticalAlignment="Center"
+				Height="49" Margin="12,11,12,11" 
+				RenderTransformOrigin="1.635,0.554" Click="AddCheaterButtonClicked"
+				Grid.Column="0" Grid.Row="1" FontSize="14" IsDefault="False" />
+			<Button x:Name="BtnAutoStatus" Content="Status Key Bind"
+				HorizontalAlignment="Stretch" VerticalAlignment="Center"
+				Height="49" Margin="12,11,12,11" 
+				RenderTransformOrigin="1.635,0.554" Click="StatusButtonClicked"
+				Grid.Column="1" Grid.Row="1" FontSize="14"/>
+			<Button x:Name="BtnImport" Content="Import"
+				HorizontalAlignment="Stretch" VerticalAlignment="Center"
+				Height="49" Margin="12,11,12,11" 
+				RenderTransformOrigin="0.52,1.485" Click="ImportClicked"
+				Grid.Column="2" Grid.Row="1" FontSize="14"/>
+			<Button x:Name="BtnExport" Content="Export"
+				HorizontalAlignment="Stretch" VerticalAlignment="Center"
+				Height="49" Margin="12,11,12,11" 
+				Click="ExportClicked" Grid.Column="3" Grid.Row="1" FontSize="14"/>
+
+			<TextBox x:Name="TxtSteamID" HorizontalAlignment="Stretch"
+					 Text="STEAM:0:1:12354847" TextWrapping="Wrap" VerticalAlignment="Center" GotFocus="SteamID_GotFocus" LostFocus="SteamID_LostFocus"
+					 Height="36" Margin="12,0,12,0" FontSize="14"/>
+			<TextBox x:Name="TxtCheats" HorizontalAlignment="Stretch"
+					 Text="Spinbot, Aimbot, Wallhacks" TextWrapping="Wrap"
+					 VerticalAlignment="Center" Height="36" GotFocus="Cheats_GotFocus"
+					 LostFocus="Cheats_LostFocus" Grid.Column="1" Margin="12,0,12,0" FontSize="14" TabIndex="1"/>
+			<TextBox x:Name="TxtThreatLevel" HorizontalAlignment="Stretch"
+					 Text="1-10" TextWrapping="Wrap" VerticalAlignment="Center"
+					 Height="36" GotFocus="ThreatLevel_GotFocus" LostFocus="ThreatLevel_LostFocus"
+					 Grid.Column="2" Margin="12,0,12,0" FontSize="14" TabIndex="2"/>
+			<TextBox x:Name="TxtName" HorizontalAlignment="Stretch" Text="The Suspect"
+					 TextWrapping="Wrap" VerticalAlignment="Center" Height="36"
+					 GotFocus="Name_GotFocus" LostFocus="Name_LostFocus"
+					 Grid.Column="3" Margin="12,0,12,0" FontSize="14" TabIndex="3"
+					 />
+		</Grid>
+
 		<ScrollViewer Background="Black" x:Name="ScrollPlayers" 
 				  HorizontalScrollBarVisibility="Auto" Margin="32,148,32,48">
 			<StackPanel x:Name="StackPanel" Background="#FF232323" Margin="0,0,0,0">
@@ -31,10 +70,10 @@
 						<ColumnDefinition/>
 						<ColumnDefinition Width=".2*"/>
 					</Grid.ColumnDefinitions>
-					<Label Grid.Column="1">Name</Label>
-					<Label Grid.Column="2">Steam</Label>
-					<Label Grid.Column="3">Cheat List</Label>
-					<Label Grid.Column="4">Threat Level</Label>
+					<Label Grid.Column="1" FontSize="14">Name</Label>
+					<Label Grid.Column="2" FontSize="14">Steam</Label>
+					<Label Grid.Column="3" FontSize="14">Cheat List</Label>
+					<Label Grid.Column="4" FontSize="14">Threat Level</Label>
 				</Grid>
 			</StackPanel>
 		</ScrollViewer>

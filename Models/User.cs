@@ -12,6 +12,7 @@ namespace DangerZoneHackerTracker.Models
 		public SteamID SteamID;
 		public bool IsCheater;
 		public bool Alerted;
+		internal bool Diconnected;
 		private Grid grid;
 
 		public Grid Grid

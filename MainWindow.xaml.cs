@@ -70,6 +70,9 @@ namespace DangerZoneHackerTracker
 		User[] Users = new User[MAXPLAYERS];
 		System.Timers.Timer timer;
 		int timercount = 0;
+#if DEBUG
+		bool Debug_IsInCallback = false;
+#endif
 
 
 		[PermissionSet(SecurityAction.Demand, Name = "FullTrust")]
@@ -84,7 +87,6 @@ namespace DangerZoneHackerTracker
 			CommunityProfilePictureRegex = new Regex(string.Format(@"<link rel={0}image_src{0} href={0}(.*){0}>", '"'));
 
 			InitializeDatabase();
-
 			CreateTimer();
 		}
 
@@ -143,16 +145,24 @@ namespace DangerZoneHackerTracker
 		/// <param name="nill">Unused parameter that the Timer class requires</param>
 		private void ReadConsole(object nill)
 		{
-			//timercount++;
-			//if (timercount >= 2)
-			//{
-			//	timer.Stop();
-			//}
+#if DEBUG
+			if(Debug_IsInCallback)
+			{
+				return;
+			}
+			Debug_IsInCallback = true;
+#endif
+			// prevent multiple instances of ReadConsole from running at the same time.
+			timer.Stop();
 			// Open the file in a way that won't bother csgo.
 			var path = Models.Window.GetProcessLocation("csgo");
 			if (string.IsNullOrEmpty(path))
 			{
+#if DEBUG
+				path = @"C:\Program Files (x86)\Steam\steamapps\common\Counter-Strike Global Offensive\csgo";
+#else
 				return;
+#endif
 			}
 			var dir = Path.Combine(Path.GetDirectoryName(path), "csgo");
 			using var stream = File.Open(Path.Combine(dir, "console.log"), FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite);
@@ -163,24 +173,18 @@ namespace DangerZoneHackerTracker
 			}
 
 			using var db = new DatabaseConnection();
-			var tempUsers = new User[MAXPLAYERS];
+			var tempUsers = Users.Where(u => u != null).ToList();
+			int preCount = tempUsers.Count;
 
 			string line;
 			// iterate each line of the file
 			while ((line = reader.ReadLine()) != null)
 			{
-				if(Debugger.IsAttached)
+				if(CheckForMapChange(line))
 				{
-					timer.Stop();
+					continue;
 				}
-				var mapMatch = MapNameRegex.Match(line);
-				// The first group match will be the current map on the server
-				if (mapMatch.Success && mapMatch.Groups[1].Value != CurrentMap)
-				{
-					OnMapChanged(oldMap: CurrentMap, currentMap: mapMatch.Groups[1].Value);
-					CurrentMap = mapMatch.Groups[1].Value;
-				}
-
+				
 				var match = SteamIDRegex.Match(line);
 				// check for an exact match
 				if (!match.Success)
@@ -196,7 +200,11 @@ namespace DangerZoneHackerTracker
 					SteamID = new SteamID(match.Groups[3].Value)
 				};
 
-
+				var foundUser = tempUsers.FirstOrDefault(u => u.SteamID.AccountID == user.SteamID.AccountID);
+				if(foundUser != null)
+				{
+					tempUsers.Remove(foundUser);
+				}
 				if (Users[user.Index] != null)
 				{
 					if (Users[user.Index].SteamID.AccountID != user.SteamID.AccountID)
@@ -206,11 +214,14 @@ namespace DangerZoneHackerTracker
 						OnClientConnected(user);
 					}
 					// handle edge case
-					else if (!user.Alerted && user.IsCheater)
+					else 
 					{
-						//ShowToastAsync(cheater);
-						PlayHax();
-						user.Alerted = true;
+						if (!user.Alerted && user.IsCheater)
+						{
+							//ShowToastAsync(cheater);
+							PlayHax();
+							user.Alerted = true;
+						}
 					}
 				}
 				else if (Users[user.Index] == null)
@@ -218,47 +229,40 @@ namespace DangerZoneHackerTracker
 					OnClientConnected(user);
 				}
 
-				tempUsers[user.Index] = user;
 				Users[user.Index] = user;
 			}
 
-			var disconnectedUsers = Users.Where(t => t != null).ToList();
-			for(int i = 0; i < Users.Length; i++)
+			if(preCount != 0)
 			{
-				var user = Users[i];
-				if (user == null)
+				foreach (var user in tempUsers)
 				{
-					continue;
+					OnClientDisconnected(user);
 				}
-				for(int j = 0; j < tempUsers.Length; j++)
-				{
-					var tempUser = tempUsers[j];
-					if(tempUser == null)
-					{
-						continue;
-					}
-
-					if(user.SteamID.AccountID == tempUser.SteamID.AccountID)
-					{
-						var _ = disconnectedUsers.Remove(user);
-						break;
-					}
-				}
-			}
-
-			foreach (var dcUser in disconnectedUsers)
-			{
-				OnClientDisconnected(dcUser);
 			}
 
 			//clear the file to save on performance.
-			//stream.SetLength(0);
+#if !DEBUG
+			stream.SetLength(0);
+#endif
 			stream.Close();
 
-			if (Debugger.IsAttached)
+#if DEBUG
+			Debug_IsInCallback = false;
+#endif
+			timer.Start();
+		}
+
+		private bool CheckForMapChange(string line)
+		{
+			var mapMatch = MapNameRegex.Match(line);
+			// The first group match will be the current map on the server
+			if (mapMatch.Success && mapMatch.Groups[1].Value != CurrentMap)
 			{
-				timer.Start();
+				OnMapChanged(oldMap: CurrentMap, currentMap: mapMatch.Groups[1].Value);
+				CurrentMap = mapMatch.Groups[1].Value;
+				return true;
 			}
+			return false;
 		}
 
 		private async void OnClientConnected(User user)
@@ -285,7 +289,6 @@ namespace DangerZoneHackerTracker
 
 		private void OnClientDisconnected(User user)
 		{
-			user = Users[user.Index];
 			// can only update controls from the main thread, which we are not in. So we invoke an inline function to do it for us.
 			this.Dispatcher.Invoke(() =>
 			{
@@ -294,6 +297,7 @@ namespace DangerZoneHackerTracker
 					StackPanel.Children.Remove(user.Grid);
 				}
 			});
+			Users[user.Index] = null;
 		}
 
 		private void OnMapChanged(string oldMap, string currentMap)
@@ -303,6 +307,7 @@ namespace DangerZoneHackerTracker
 				if (user != null)
 				{
 					user.Alerted = false;
+					user.Diconnected = true;
 				}
 			}
 		}

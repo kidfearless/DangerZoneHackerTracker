@@ -5,7 +5,7 @@ using System.Windows.Controls;
 
 namespace DangerZoneHackerTracker.Models
 {
-	class User
+	class User : IDisposable
 	{
 		public int Index;
 		public string Name;
@@ -18,6 +18,18 @@ namespace DangerZoneHackerTracker.Models
 		{
 			get => grid;
 			set => grid = value;
+		}
+
+		public void Dispose()
+		{
+			if(this.Grid != null)
+			{
+				var parent = (StackPanel)this.Grid.Parent;
+				if(parent != null && parent.Children.Contains(this.Grid))
+				{
+					parent.Children.Remove(this.Grid);
+				}
+			}
 		}
 	}
 

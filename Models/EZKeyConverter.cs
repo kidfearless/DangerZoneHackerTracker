@@ -306,6 +306,7 @@ namespace DangerZoneHackerTracker
 				case Key.NumPad2: 						return Keyboard.DirectXKeyStrokes.DIK_NUMPAD2;
 				case Key.NumPad3: 						return Keyboard.DirectXKeyStrokes.DIK_NUMPAD3;
 				case Key.NumPad4: 						return Keyboard.DirectXKeyStrokes.DIK_NUMPAD4;
+				case Key.Clear: 						return Keyboard.DirectXKeyStrokes.DIK_NUMPAD5;
 				case Key.NumPad5: 						return Keyboard.DirectXKeyStrokes.DIK_NUMPAD5;
 				case Key.NumPad6: 						return Keyboard.DirectXKeyStrokes.DIK_NUMPAD6;
 				case Key.NumPad7: 						return Keyboard.DirectXKeyStrokes.DIK_NUMPAD7;

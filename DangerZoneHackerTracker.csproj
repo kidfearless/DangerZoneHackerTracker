@@ -5,12 +5,19 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <UseWPF>true</UseWPF>
     <ApplicationIcon>favicon.ico</ApplicationIcon>
+    <Version>1.1.2</Version>
+    <Authors>KiD Fearless</Authors>
+    <PackageIcon>DZ_ICON.png</PackageIcon>
   </PropertyGroup>
 
   <ItemGroup>
     <Compile Remove="Notifications.Wpf.Core\**" />
     <EmbeddedResource Remove="Notifications.Wpf.Core\**" />
     <None Remove="Notifications.Wpf.Core\**" />
+    <None Include="Resources\DZ_ICON.png">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
     <Page Remove="Notifications.Wpf.Core\**" />
   </ItemGroup>
 
@@ -18,10 +25,14 @@
     <None Remove="haaaaxedit.mp3" />
     <None Remove="Resources\DZ_ICON.png" />
     <None Remove="Resources\favicon.ico" />
+    <None Remove="Resources\icon.png" />
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="Resources\haaaaxedit.mp3">
+    <EmbeddedResource Include="Resources\haaaaxedit.mp3">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <Content Include="Resources\icon.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
@@ -49,9 +60,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Resource Include="Resources\favicon.ico">
+    <EmbeddedResource Include="Resources\favicon.ico">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Resource>
+    </EmbeddedResource>
   </ItemGroup>
 
 </Project>

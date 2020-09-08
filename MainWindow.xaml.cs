@@ -23,6 +23,7 @@ using System.Windows.Media;
 using System.Timers;
 using Keyboard = DangerZoneHackerTracker.Models.Keyboard;
 using Path = System.IO.Path;
+using System.Reflection;
 
 
 /*
@@ -69,9 +70,6 @@ namespace DangerZoneHackerTracker
 		string CurrentMap = "";
 		User[] Users = new User[MAXPLAYERS];
 		System.Timers.Timer timer;
-#if DEBUG
-		bool Debug_IsInCallback = false;
-#endif
 
 
 		[PermissionSet(SecurityAction.Demand, Name = "FullTrust")]
@@ -114,7 +112,6 @@ namespace DangerZoneHackerTracker
 			{
 				db.DropTable<Settings>();
 				db.CreateTable<Settings>();
-
 			}
 
 
@@ -393,7 +390,6 @@ namespace DangerZoneHackerTracker
 			}
 			catch
 			{
-
 			}
 
 			// reset the default placeholders
@@ -523,12 +519,16 @@ namespace DangerZoneHackerTracker
 		/// </summary>
 		private void PlayHax()
 		{
+			var stream = Assembly.GetExecutingAssembly()
+								 .GetManifestResourceStream("DangerZoneHackerTracker.Resources.haaaaxedit.mp3");
 			var outputDevice = new WaveOutEvent();
-			var audioFile = new AudioFileReader("Resources/haaaaxedit.mp3");
+			var audioFile = new Mp3FileReader(stream);
 			outputDevice.PlaybackStopped += (object sender, StoppedEventArgs e) =>
 			{
 				audioFile.Dispose();
 				audioFile = null;
+				stream.Dispose();
+				stream = null;
 			};
 			outputDevice.Init(audioFile);
 			outputDevice.Play();

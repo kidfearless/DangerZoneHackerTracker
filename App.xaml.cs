@@ -37,7 +37,7 @@ namespace DangerZoneHackerTracker
 		{
 			LogException(e.Exception);
 
-			e.Handled = true;
+			//e.Handled = true;
 		}
 
 		private void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)

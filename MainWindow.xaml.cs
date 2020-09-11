@@ -162,8 +162,8 @@ namespace DangerZoneHackerTracker
 				return;
 #endif
 			}
-			var dir = Path.Combine(Path.GetDirectoryName(path), "csgo");
-			using var stream = File.Open(Path.Combine(dir, "console.log"), FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite);
+			var consolePath = Path.Combine(Path.GetDirectoryName(path), "csgo");
+			using var stream = File.Open(Path.Combine(consolePath, "console.log"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite);
 			using var reader = new StreamReader(stream, true);
 			if (reader.BaseStream.Length <= 0)
 			{
@@ -332,8 +332,6 @@ namespace DangerZoneHackerTracker
 
 		private void ImportClicked(object sender, RoutedEventArgs e)
 		{
-
-
 			var dialog = new OpenFileDialog();
 			dialog.Filter = "sqlite files (*.sq3)|*.sq3|All Files (*.*)|*.*";
 			dialog.Multiselect = false;

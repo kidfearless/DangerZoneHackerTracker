@@ -247,6 +247,10 @@ namespace DangerZoneHackerTracker
 
 		private void OnClientConnected(User user)
 		{
+			foreach (var u in Users.Where(z => z != null && z.SteamID.AccountID == user.SteamID.AccountID))
+			{
+				StackPanel.Children.Remove(u.Grid);
+			}
 			Users[user.Index] = user;
 			var db = new DatabaseConnection();
 			// create a Cheater table object to work from. Changes to this object will be reflected in the db.

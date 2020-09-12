@@ -24,6 +24,8 @@ using System.Timers;
 using Keyboard = DangerZoneHackerTracker.Models.Keyboard;
 using Path = System.IO.Path;
 using System.Reflection;
+using Windows.UI.Xaml.Controls.Primitives;
+using System.Windows.Shapes;
 
 
 /*
@@ -90,7 +92,7 @@ namespace DangerZoneHackerTracker
 		private void CreateTimer()
 		{
 			// Create a repeating timer to check the console file
-			timer = new System.Timers.Timer(TimeSpan.FromSeconds(1).TotalMilliseconds);
+			timer = new System.Timers.Timer(TimeSpan.FromSeconds(3).TotalMilliseconds);
 			timer.Elapsed += Timer_CheckStatus;
 			timer.Start();
 		}
@@ -247,10 +249,10 @@ namespace DangerZoneHackerTracker
 
 		private void OnClientConnected(User user)
 		{
-			foreach (var u in Users.Where(z => z != null && z.SteamID.AccountID == user.SteamID.AccountID))
-			{
-				StackPanel.Children.Remove(u.Grid);
-			}
+			//foreach (var u in Users.Where(z => z != null && z.SteamID.AccountID == user.SteamID.AccountID))
+			//{
+			//	StackPanel.Children.Remove(u.Grid);
+			//}
 			Users[user.Index] = user;
 			var db = new DatabaseConnection();
 			// create a Cheater table object to work from. Changes to this object will be reflected in the db.
@@ -272,10 +274,7 @@ namespace DangerZoneHackerTracker
 
 			Dispatcher.Invoke(() =>
 			{
-				user.Grid = CreateUserRow(user);
-				StackPanel.Children.Add(user.Grid);
-
-				Users[user.Index].Grid = user.Grid;
+				CreateUserRow(user);
 			});
 		}
 
@@ -283,11 +282,7 @@ namespace DangerZoneHackerTracker
 		{
 			Users[user.Index] = null;
 
-			// can only update controls from the main thread, which we are not in. So we invoke an inline function to do it for us.
-			Dispatcher.Invoke(() =>
-			{
-				StackPanel.Children.Remove(user.Grid);
-			});
+			user.Dispose();
 		}
 
 		private void OnMapChanged(string oldMap, string currentMap)
@@ -541,7 +536,7 @@ namespace DangerZoneHackerTracker
 		/// <param name="name"></param>
 		/// <param name="steamid"></param>
 		/// <returns></returns>
-		private Grid CreateUserRow(User user)
+		private void CreateUserRow(User user)
 		{
 			/*
 			 *	<Label Grid.Column="0">pic</Label>
@@ -551,36 +546,10 @@ namespace DangerZoneHackerTracker
 				<Label Grid.Column="4">Threat Level</Label>
 				<Label Grid.Column="5">Add</Label>
 			*/
-			Grid grid = new Grid();
-			user.Grid = grid;
-			if (user.Cheater != null)
+
+			ConnectedUserGrid.RowDefinitions.Add(new RowDefinition()
 			{
-				grid.Background = new SolidColorBrush(Color.FromRgb(160, 0, 0));
-			}
-			//column definitions have to be unique... so this exists
-			grid.ColumnDefinitions.Add(new ColumnDefinition()
-			{
-				Width = new GridLength(0.5, GridUnitType.Star)
-			});
-			grid.ColumnDefinitions.Add(new ColumnDefinition()
-			{
-				Width = new GridLength(1.5, GridUnitType.Star)
-			});
-			grid.ColumnDefinitions.Add(new ColumnDefinition()
-			{
-				Width = new GridLength(1, GridUnitType.Star)
-			});
-			grid.ColumnDefinitions.Add(new ColumnDefinition()
-			{
-				Width = new GridLength(1, GridUnitType.Star)
-			});
-			grid.ColumnDefinitions.Add(new ColumnDefinition()
-			{
-				Width = new GridLength(1, GridUnitType.Star)
-			});
-			grid.ColumnDefinitions.Add(new ColumnDefinition()
-			{
-				Width = new GridLength(0.2, GridUnitType.Star)
+				Height = new GridLength(1, GridUnitType.Star)
 			});
 
 			// create our controls
@@ -607,7 +576,7 @@ namespace DangerZoneHackerTracker
 				Text = user.Cheater != null ? user.Cheater.ThreatLevel.ToString() : ""
 			};
 
-			GetProfilePictureAsync(user);
+			GetProfilePictureAsync(user, user.Index);
 
 			var addButton = new Button()
 			{
@@ -632,21 +601,47 @@ namespace DangerZoneHackerTracker
 				threatLevel.Text = "";
 			};
 
+			if(user.Cheater != null)
+			{
+				for (int i = 0; i < ConnectedUserGrid.ColumnDefinitions.Count; i++)
+				{
+					var rect = new Rectangle()
+					{
+						Fill = new SolidColorBrush(Color.FromRgb(160, 0, 0))
+					};
+
+					user.Elements.Add(rect);
+					ConnectedUserGrid.Children.Add(rect);
+					rect.SetGridColumn(i);
+					rect.SetGridRow(user.Index);
+				}
+			}
+
 			// add our controls to the grid
-			grid.Children.Add(lName);
-			grid.Children.Add(steamID);
-			grid.Children.Add(cheatList);
-			grid.Children.Add(threatLevel);
-			grid.Children.Add(addButton);
+			ConnectedUserGrid.Children.Add(lName);
+			ConnectedUserGrid.Children.Add(steamID);
+			ConnectedUserGrid.Children.Add(cheatList);
+			ConnectedUserGrid.Children.Add(threatLevel);
+			ConnectedUserGrid.Children.Add(addButton);
+
+			user.Elements.Add(lName);
+			user.Elements.Add(steamID);
+			user.Elements.Add(cheatList);
+			user.Elements.Add(threatLevel);
+			user.Elements.Add(addButton);
 
 			// tell our controls which grid column they should use.
-			Grid.SetColumn(lName, 1);
-			Grid.SetColumn(steamID, 2);
-			Grid.SetColumn(cheatList, 3);
-			Grid.SetColumn(threatLevel, 4);
-			Grid.SetColumn(addButton, 5);
+			lName.SetGridColumn(Grid.GetColumn(LblName));
+			steamID.SetGridColumn(Grid.GetColumn(LblSteam));
+			cheatList.SetGridColumn(Grid.GetColumn(LblCheats));
+			threatLevel.SetGridColumn(Grid.GetColumn(LblThreatLevel));
+			addButton.SetGridColumn(Grid.GetColumn(LblThreatLevel) + 1);
 
-			return grid;
+			lName.SetGridRow(user.Index);
+			steamID.SetGridRow(user.Index);
+			cheatList.SetGridRow(user.Index);
+			threatLevel.SetGridRow(user.Index);
+			addButton.SetGridRow(user.Index);
 		}
 
 		private Image CreateImage(string source, double width = 48.0, double height = 48.0)
@@ -700,11 +695,10 @@ namespace DangerZoneHackerTracker
 				response.Close();
 				readStream.Close();
 			}
-
 			return string.Empty;
 		}
 
-		private async Task GetProfilePictureAsync(User user)
+		private async Task GetProfilePictureAsync(User user, int row)
 		{
 			var url = $"http://steamcommunity.com/profiles/{user.SteamID.ConvertToUInt64()}";
 			var profilePicURL = await GetProfilePictureURL(url);
@@ -717,8 +711,11 @@ namespace DangerZoneHackerTracker
 				}
 				catch { }
 			};
-			user.Grid.Children.Add(image);
-			Grid.SetColumn(image, 0);
+			
+			ConnectedUserGrid.Children.Add(image);
+			user.Elements.Add(image);
+			image.SetGridColumn(0);
+			image.SetGridRow(row);
 		}
 		#endregion
 

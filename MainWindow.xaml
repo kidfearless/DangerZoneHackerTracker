@@ -11,9 +11,8 @@
 	<controls:BiaWindow.Icon>
 		<ImageBrush ImageSource="/Resources/DZ_ICON.png" Stretch="Fill"/>
 	</controls:BiaWindow.Icon>
-
-	<Grid Margin="0,0,10,-6">
-		<Grid Margin="32,10,32,0" Panel.ZIndex="-5" RenderTransformOrigin="0.499,0.288" Height="118" VerticalAlignment="Top">
+	<Grid>
+		<Grid Margin="32,10,32,0" Panel.ZIndex="-5" Height="118" VerticalAlignment="Top">
 			<Grid.ColumnDefinitions>
 				<ColumnDefinition></ColumnDefinition>
 				<ColumnDefinition></ColumnDefinition>
@@ -61,26 +60,50 @@
 					 Grid.Column="3" Margin="12,0,12,0" FontSize="14" TabIndex="3"
 					 />
 		</Grid>
-
-		<ScrollViewer Background="Black" x:Name="ScrollPlayers" 
-				  HorizontalScrollBarVisibility="Auto" Margin="32,148,32,48">
-			<StackPanel x:Name="StackPanel" Background="#FF232323" Margin="0,0,0,0">
-				<Grid  Margin="0,0,0,0">
-					<Grid.ColumnDefinitions>
-						<ColumnDefinition Width="0.5*"/>
-						<ColumnDefinition Width="1.5*"/>
-						<ColumnDefinition/>
-						<ColumnDefinition/>
-						<ColumnDefinition/>
-						<ColumnDefinition Width=".2*"/>
-					</Grid.ColumnDefinitions>
-					<Label Grid.Column="1" FontSize="14">Name</Label>
-					<Label Grid.Column="2" FontSize="14">Steam</Label>
-					<Label Grid.Column="3" FontSize="14">Cheat List</Label>
-					<Label Grid.Column="4" FontSize="14">Threat Level</Label>
-				</Grid>
-			</StackPanel>
+		<ScrollViewer Margin="32,148,32,48">
+			<Grid Background="#FF232323" x:Name="ConnectedUserGrid" VerticalAlignment="Top">
+				<Grid.ColumnDefinitions>
+					<!--Picture-->
+					<ColumnDefinition 
+						Width="Auto"
+						/>
+					<!--Name-->
+					<ColumnDefinition 
+						Width="Auto"
+						/>
+						<!--Width="1.5*"-->
+					<!--SteamID-->
+					<ColumnDefinition 
+						Width="Auto"
+						/>
+						<!--Width="0.9*"-->
+					<!--Cheat List-->
+					<ColumnDefinition
+						Width="*"
+						/>
+					<!--ThreatLevel-->
+					<ColumnDefinition
+						Width="*"
+						/>
+					<!--Buttons-->
+					<ColumnDefinition
+						Width="auto"
+						/>
+						<!--Width=".3*"-->
+				</Grid.ColumnDefinitions>
+				<Grid.RowDefinitions>
+					<RowDefinition></RowDefinition>
+					<RowDefinition></RowDefinition>
+				</Grid.RowDefinitions>
+				<Label x:Name="LblPicture" Margin="5,0,5,0" Grid.Column="0" FontSize="14"></Label>
+				<Label x:Name="LblName" Margin="5,0,5,0" Grid.Column="1" FontSize="14">Name</Label>
+				<Label x:Name="LblSteam" Margin="5,0,5,0" Grid.Column="2" FontSize="14">Steam</Label>
+				<Label x:Name="LblCheats" Margin="5,0,5,0" Grid.Column="3" FontSize="14">Cheat List</Label>
+				<Label x:Name="LblThreatLevel" Margin="5,0,5,0" Grid.Column="4" FontSize="14">Threat Level</Label>
+				<Label x:Name="LblButtonsAdd" Margin="5,0,5,0" Grid.Column="5" FontSize="14"></Label>
+			</Grid>
 		</ScrollViewer>
 
 	</Grid>
+
 </controls:BiaWindow>

@@ -25,7 +25,10 @@ namespace DangerZoneHackerTracker.Models
 			foreach (var element in Elements)
 			{
 				var parent = (Grid)element.Parent;
-				parent.Children.Remove(element);
+				parent.Dispatcher.Invoke(() =>
+				{
+					parent.Children.Remove(element);
+				});
 			};
 		}
 	}

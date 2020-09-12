@@ -31,7 +31,7 @@ namespace DangerZoneHackerTracker.Models
 			{
 				return Buff.ToString();
 			}
-			return String.Empty;
+			return string.Empty;
 		}
 
 		public static string GetProcessLocation(string name)
@@ -43,11 +43,10 @@ namespace DangerZoneHackerTracker.Models
 		public static Process GetActiveProcess()
 		{
 			IntPtr handle = GetForegroundWindow();
-			uint pID;
 
-			GetWindowThreadProcessId(handle, out pID);
+			GetWindowThreadProcessId(handle, out uint pID);
 
-			return Process.GetProcessById((Int32)pID);
+			return Process.GetProcessById((int)pID);
 		}
 
 	}

@@ -70,8 +70,8 @@ namespace DangerZoneHackerTracker
 		readonly Regex CommunityURLRegex;
 		readonly Regex CommunityProfilePictureRegex;
 		string CurrentMap = "";
-		User[] Users = new User[MAXPLAYERS];
-		System.Timers.Timer timer;
+		readonly User[] Users = new User[MAXPLAYERS];
+		System.Timers.Timer CronTimer;
 
 
 		[PermissionSet(SecurityAction.Demand, Name = "FullTrust")]
@@ -92,9 +92,9 @@ namespace DangerZoneHackerTracker
 		private void CreateTimer()
 		{
 			// Create a repeating timer to check the console file
-			timer = new System.Timers.Timer(TimeSpan.FromSeconds(3).TotalMilliseconds);
-			timer.Elapsed += Timer_CheckStatus;
-			timer.Start();
+			CronTimer = new System.Timers.Timer(TimeSpan.FromSeconds(3).TotalMilliseconds);
+			CronTimer.Elapsed += Timer_CheckStatus;
+			CronTimer.Start();
 		}
 
 		private void InitializeDatabase()
@@ -115,8 +115,6 @@ namespace DangerZoneHackerTracker
 				db.DropTable<Settings>();
 				db.CreateTable<Settings>();
 			}
-
-
 
 			var setting = db.Table<Settings>().SingleOrDefault();
 			if (setting != null && setting.StatusKey != null)
@@ -296,10 +294,12 @@ namespace DangerZoneHackerTracker
 		#region event handlers
 		private void ExportClicked(object sender, RoutedEventArgs e)
 		{
-			var dialog = new SaveFileDialog();
-			dialog.FileName = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "exported_cheaters.sq3");
-			dialog.DefaultExt = ".sq3";
-			dialog.Filter = "sqlite files (*.sq3)|*.sq3|All Files (*.*)|*.*";
+			var dialog = new SaveFileDialog
+			{
+				FileName = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "exported_cheaters.sq3"),
+				DefaultExt = ".sq3",
+				Filter = "sqlite files (*.sq3)|*.sq3|All Files (*.*)|*.*"
+			};
 
 			if ((bool)dialog.ShowDialog())
 			{
@@ -327,9 +327,11 @@ namespace DangerZoneHackerTracker
 
 		private void ImportClicked(object sender, RoutedEventArgs e)
 		{
-			var dialog = new OpenFileDialog();
-			dialog.Filter = "sqlite files (*.sq3)|*.sq3|All Files (*.*)|*.*";
-			dialog.Multiselect = false;
+			var dialog = new OpenFileDialog
+			{
+				Filter = "sqlite files (*.sq3)|*.sq3|All Files (*.*)|*.*",
+				Multiselect = false
+			};
 			if ((bool)dialog.ShowDialog())
 			{
 				using var otherDB = new SQLiteConnection(dialog.FileName, Constants.Flags);
@@ -340,8 +342,6 @@ namespace DangerZoneHackerTracker
 					myDB.InsertOrReplace(cheater, typeof(Cheater));
 				}
 			}
-
-			// TODO: Implement
 		}
 
 		/// <summary>
@@ -530,6 +530,7 @@ namespace DangerZoneHackerTracker
 			outputDevice.Init(audioFile);
 			outputDevice.Play();
 		}
+
 		/// <summary>
 		/// Helper method to create a row in the grid with the data we want in it.
 		/// </summary>
@@ -546,11 +547,6 @@ namespace DangerZoneHackerTracker
 				<Label Grid.Column="4">Threat Level</Label>
 				<Label Grid.Column="5">Add</Label>
 			*/
-
-			ConnectedUserGrid.RowDefinitions.Add(new RowDefinition()
-			{
-				Height = new GridLength(1, GridUnitType.Star)
-			});
 
 			// create our controls
 			Label lName = new Label()
@@ -718,6 +714,5 @@ namespace DangerZoneHackerTracker
 			image.SetGridRow(row);
 		}
 		#endregion
-
 	}
 }

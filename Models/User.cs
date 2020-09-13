@@ -14,6 +14,7 @@ namespace DangerZoneHackerTracker.Models
 		public Cheater Cheater;
 		public bool Alerted;
 		public List<FrameworkElement> Elements = new List<FrameworkElement>();
+		public Image Image;
 
 		~User()
 		{
@@ -25,11 +26,19 @@ namespace DangerZoneHackerTracker.Models
 			foreach (var element in Elements)
 			{
 				var parent = (Grid)element.Parent;
-				parent.Dispatcher.Invoke(() =>
+				parent?.Dispatcher.Invoke(() =>
 				{
 					parent.Children.Remove(element);
 				});
 			};
+			if(Image != null)
+			{
+				var parent = (Grid)Image.Parent;
+				parent?.Dispatcher.Invoke(() =>
+				{
+					parent.Children.Remove(Image);
+				});
+			}
 		}
 	}
 

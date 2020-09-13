@@ -72,7 +72,7 @@ namespace DangerZoneHackerTracker
 		string CurrentMap = "";
 		readonly User[] Users = new User[MAXPLAYERS];
 		System.Timers.Timer CronTimer;
-
+		private bool ReadingConsole;
 
 		[PermissionSet(SecurityAction.Demand, Name = "FullTrust")]
 		public MainWindow()
@@ -150,8 +150,9 @@ namespace DangerZoneHackerTracker
 		/// Reads and processes the console.log file
 		/// </summary>
 		/// <param name="nill">Unused parameter that the Timer class requires</param>
-		private void ReadConsole(object nill)
+		private async void ReadConsole(object nill)
 		{
+			this.ReadingConsole = true;
 			//Open the file in a way that won't bother csgo.
 			var path = Models.Window.GetProcessLocation("csgo");
 			if (string.IsNullOrEmpty(path))
@@ -170,26 +171,42 @@ namespace DangerZoneHackerTracker
 				return;
 			}
 
-			using var db = new DatabaseConnection();
-			var tempUsers = Users.Where(u => u != null).ToList();
-			int preCount = tempUsers.Count;
+			var lines = (await reader.ReadToEndAsync()).Split('\n', StringSplitOptions.RemoveEmptyEntries);
 
+			//clear the file to save on performance.
+			stream.SetLength(0);
+			stream.Close();
+
+			var replacedUsers = Users.Where(u => u != null).ToList();
+			var disconnectedUsers = new Dictionary<int, User>();
+			var newlyConnectedUsers = new Dictionary<int, User>();
+			int preCount = replacedUsers.Count;
 			int totalUsers = 0;
 
-			string line;
-			// iterate each line of the file
-			while ((line = reader.ReadLine()) != null)
+			foreach (var line in lines)
 			{
-				CheckForMapChange(line);
-
+				#region mapchange
+				var mapMatch = MapNameRegex.Match(line);
+				// The first group match will be the current map on the server
+				if (mapMatch.Success && mapMatch.Groups[1].Value != CurrentMap)
+				{
+					foreach (var u in Users)
+					{
+						if(u != null)
+						{
+							Users[u.Index] = null;
+							disconnectedUsers[u.Index] = u;
+						}
+					}
+					CurrentMap = mapMatch.Groups[1].Value;
+				}
+				#endregion
 				var match = SteamIDRegex.Match(line);
 				// check for an exact match
 				if (!match.Success)
 				{
 					continue;
 				}
-
-				totalUsers++;
 
 				// create our user from the match. Index 0 is the full match, every index after is our groups
 				User user = new User()
@@ -199,81 +216,85 @@ namespace DangerZoneHackerTracker
 					SteamID = new SteamID(match.Groups[3].Value)
 				};
 
-				var foundUser = tempUsers.FirstOrDefault(u => u.SteamID.AccountID == user.SteamID.AccountID);
-				if (foundUser != null)
-				{
-					tempUsers.Remove(foundUser);
-				}
+				totalUsers++;
+
+				var foundUser = Users.SingleOrDefault(e => e != null && e.Index == user.Index && user.SteamID.AccountID == e.SteamID.AccountID);
+				replacedUsers?.Remove(foundUser);
+
+				// we already had someone here under that index
 				if (Users[user.Index] != null)
 				{
+					// is it someone different?
 					if (Users[user.Index].SteamID.AccountID != user.SteamID.AccountID)
 					{
-						OnClientDisconnected(Users[user.Index]);
-						OnClientConnected(user);
+						disconnectedUsers[user.Index] = (Users[user.Index]);
+						newlyConnectedUsers[user.Index] = (user);
 					}
 				}
 				else
 				{
-					OnClientConnected(user);
+					newlyConnectedUsers[user.Index] = (user);
 				}
+
 			}
 
 			if (preCount != 0 && totalUsers > 0)
 			{
-				foreach (var user in tempUsers)
+				foreach (var user in replacedUsers)
 				{
 					OnClientDisconnected(user);
 				}
 			}
 
-			//clear the file to save on performance.
-			stream.SetLength(0);
-
-			stream.Close();
-		}
-
-		private bool CheckForMapChange(string line)
-		{
-			var mapMatch = MapNameRegex.Match(line);
-			// The first group match will be the current map on the server
-			if (mapMatch.Success && mapMatch.Groups[1].Value != CurrentMap)
+			ConnectedUserGrid.Dispatcher.Invoke(() =>
 			{
-				OnMapChanged(oldMap: CurrentMap, currentMap: mapMatch.Groups[1].Value);
-				CurrentMap = mapMatch.Groups[1].Value;
-				return true;
-			}
-			return false;
+				try
+				{
+
+			
+				foreach (var user in disconnectedUsers.Values)
+				{
+					Users[user.Index] = null;
+					foreach (var element in user.Elements)
+					{
+						ConnectedUserGrid.Children.Remove(element);
+					}
+				}
+				foreach (var user in newlyConnectedUsers.Values)
+				{
+					Users[user.Index] = user;
+
+					var db = new DatabaseConnection();
+					// create a Cheater table object to work from. Changes to this object will be reflected in the db.
+					var cheater = db.Table<Cheater>().SingleOrDefault(e => e.AccountID == user.SteamID.AccountID);
+					if (cheater != null)
+					{
+						ShowToastAsync(
+							title: $"Hacker {user.Name} Found In Game",
+							message: $"Threat Level: {cheater.ThreatLevel}\n" +
+									$"Known Cheats: {cheater.CheatList}\n" +
+									$"Previous Name: {cheater.LastKnownName}",
+							duration: TimeSpan.FromSeconds(10.0));
+						cheater.LastKnownName = user.Name;
+						PlayHax();
+						user.Alerted = true;
+						user.Cheater = cheater;
+						db.InsertOrReplace(cheater, typeof(Cheater));
+					}
+
+					CreateUserRow(user);
+				}
+				}
+				catch
+				{
+				}
+			});
 		}
 
 		private void OnClientConnected(User user)
 		{
-			//foreach (var u in Users.Where(z => z != null && z.SteamID.AccountID == user.SteamID.AccountID))
-			//{
-			//	StackPanel.Children.Remove(u.Grid);
-			//}
 			Users[user.Index] = user;
-			var db = new DatabaseConnection();
-			// create a Cheater table object to work from. Changes to this object will be reflected in the db.
-			var cheater = db.Table<Cheater>().SingleOrDefault(e => e.AccountID == user.SteamID.AccountID);
-			if (cheater != null)
-			{
-				ShowToastAsync(
-					title: $"Hacker {user.Name} Found In Game",
-					message: $"Threat Level: {cheater.ThreatLevel}\n" +
-							$"Known Cheats: {cheater.CheatList}\n" +
-							$"Previous Name: {cheater.LastKnownName}",
-					duration: TimeSpan.FromSeconds(10.0));
-				cheater.LastKnownName = user.Name;
-				PlayHax();
-				user.Alerted = true;
-				user.Cheater = cheater;
-				db.InsertOrReplace(cheater, typeof(Cheater));
-			}
-
-			Dispatcher.Invoke(() =>
-			{
-				CreateUserRow(user);
-			});
+			
 		}
 
 		private void OnClientDisconnected(User user)
@@ -572,7 +593,7 @@ namespace DangerZoneHackerTracker
 				Text = user.Cheater != null ? user.Cheater.ThreatLevel.ToString() : ""
 			};
 
-			GetProfilePictureAsync(user, user.Index);
+			GetProfilePictureAsync(user);
 
 			var addButton = new Button()
 			{
@@ -597,7 +618,7 @@ namespace DangerZoneHackerTracker
 				threatLevel.Text = "";
 			};
 
-			if(user.Cheater != null)
+			if (user.Cheater != null)
 			{
 				for (int i = 0; i < ConnectedUserGrid.ColumnDefinitions.Count; i++)
 				{
@@ -694,12 +715,12 @@ namespace DangerZoneHackerTracker
 			return string.Empty;
 		}
 
-		private async Task GetProfilePictureAsync(User user, int row)
+		private async Task GetProfilePictureAsync(User user)
 		{
 			var url = $"http://steamcommunity.com/profiles/{user.SteamID.ConvertToUInt64()}";
 			var profilePicURL = await GetProfilePictureURL(url);
-			var image = CreateImage(profilePicURL);
-			image.MouseDown += (object sender, MouseButtonEventArgs e) =>
+			user.Image = CreateImage(profilePicURL);
+			user.Image.MouseDown += (object sender, MouseButtonEventArgs e) =>
 			{
 				try
 				{
@@ -707,11 +728,10 @@ namespace DangerZoneHackerTracker
 				}
 				catch { }
 			};
-			
-			ConnectedUserGrid.Children.Add(image);
-			user.Elements.Add(image);
-			image.SetGridColumn(0);
-			image.SetGridRow(row);
+
+			ConnectedUserGrid.Children.Add(user.Image);
+			user.Image.SetGridColumn(0);
+			user.Image.SetGridRow(user.Index);
 		}
 		#endregion
 	}

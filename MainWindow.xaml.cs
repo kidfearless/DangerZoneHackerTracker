@@ -72,7 +72,6 @@ namespace DangerZoneHackerTracker
 		string CurrentMap = "";
 		readonly User[] Users = new User[MAXPLAYERS];
 		System.Timers.Timer CronTimer;
-		private bool ReadingConsole;
 
 		[PermissionSet(SecurityAction.Demand, Name = "FullTrust")]
 		public MainWindow()
@@ -152,7 +151,6 @@ namespace DangerZoneHackerTracker
 		/// <param name="nill">Unused parameter that the Timer class requires</param>
 		private async void ReadConsole(object nill)
 		{
-			this.ReadingConsole = true;
 			//Open the file in a way that won't bother csgo.
 			var path = Models.Window.GetProcessLocation("csgo");
 			if (string.IsNullOrEmpty(path))

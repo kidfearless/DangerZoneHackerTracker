@@ -1,0 +1,31 @@
+﻿<controls:BiaWindow x:Class="DangerZoneHackerTracker.BulkAddWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+		xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+		xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+		xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+		xmlns:local="clr-namespace:DangerZoneHackerTracker"
+		xmlns:controls="clr-namespace:Biaui.Controls;assembly=Biaui"
+		mc:Ignorable="d"
+					Title="Bulk Add"
+					Style="{StaticResource BiaWindowSpaceSavingStyle}"
+        Height="240" Width="320" MinHeight="240" MinWidth="320"
+					 >
+	<Grid Margin="0">
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition Width="21*"/>
+			<ColumnDefinition Width="190*"/>
+			<ColumnDefinition Width="109*"/>
+		</Grid.ColumnDefinitions>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="179*"></RowDefinition>
+			<RowDefinition Height="45*"></RowDefinition>
+		</Grid.RowDefinitions>
+		<TextBox HorizontalAlignment="Stretch" VerticalAlignment="Stretch" AcceptsReturn="True"
+			Height="Auto" VerticalContentAlignment="Top"
+				 Text="TextBlock" TextWrapping="NoWrap" Grid.ColumnSpan="3"/>
+		<Button  Content="Add" HorizontalAlignment="Left"
+				 Margin="44,0,0,0" Grid.Row="1" VerticalAlignment="Center"
+				 Width="56" Grid.Column="2"/>
+
+	</Grid>
+</controls:BiaWindow>

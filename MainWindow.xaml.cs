@@ -570,7 +570,7 @@ namespace DangerZoneHackerTracker
 			// create our controls
 			Label lName = new Label()
 			{
-				Content = user.Name.Replace("_", "__"),
+				Content = " " + user.Name.Replace("_", "__"),
 				Margin = new Thickness(0.0, 48 / 4, 48 / 4, 5.0)
 			};
 			// single underscores have special meanings and have to be escaped
@@ -732,5 +732,11 @@ namespace DangerZoneHackerTracker
 			user.Image.SetGridRow(user.Index);
 		}
 		#endregion
+
+		private void MenuItem_Click(object sender, RoutedEventArgs e)
+		{
+			BulkAddWindow add = new BulkAddWindow();
+			add.Show();
+		}
 	}
 }

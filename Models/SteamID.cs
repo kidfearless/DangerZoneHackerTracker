@@ -75,6 +75,10 @@ namespace DangerZoneHackerTracker
 			@"\[(?<type>[AGMPCgcLTIUai]):(?<universe>[0-4]):(?<account>\d+)(\((?<instance>\d+)\))?\]",
 			RegexOptions.Compiled );
 
+		public static readonly Regex CommunityURLRegex = new Regex(@"(?:http(?:s)?:\/\/)?steamcommunity.com\/(id|profiles)\/(\w+)\/?",
+			RegexOptions.Compiled);
+
+
 		static readonly Dictionary<EAccountType, char> AccountTypeChars = new Dictionary<EAccountType, char>
 		{
 			{ EAccountType.AnonGameServer, 'A' },

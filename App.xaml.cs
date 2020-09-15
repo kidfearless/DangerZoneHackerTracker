@@ -47,11 +47,16 @@ namespace DangerZoneHackerTracker
 
 		private void LogException(Exception exception)
 		{
-			File.AppendAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "DangerZoneExceptions.txt"),
-				$"\n\nUnhandled Exception: {exception.GetType().Name}\n" +
-				$"Message: {exception.Message}\n" +
-				$"Stack Trace:\n" +
-				$"{exception.StackTrace}");
+			try
+			{
+
+				File.AppendAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "DangerZoneExceptions.txt"),
+					$"\n\nUnhandled Exception: {exception.GetType().Name}\n" +
+					$"Message: {exception.Message}\n" +
+					$"Stack Trace:\n" +
+					$"{exception.StackTrace}");
+			}
+			catch { }
 		}
 	}
 }

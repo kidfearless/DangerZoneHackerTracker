@@ -11,166 +11,168 @@
 	<controls:BiaWindow.Icon>
 		<ImageBrush ImageSource="/Resources/DZ_ICON.png" Stretch="Fill"/>
 	</controls:BiaWindow.Icon>
-	<Grid>
+	<StackPanel>
 		<Menu>
 			<MenuItem Header="Bulk Import" Click="MenuItem_Click"></MenuItem>
 		</Menu>
-		<Grid Margin="32,24,32,0" Panel.ZIndex="-5" Height="118" VerticalAlignment="Top">
-			<Grid.ColumnDefinitions>
-				<ColumnDefinition></ColumnDefinition>
-				<ColumnDefinition></ColumnDefinition>
-				<ColumnDefinition></ColumnDefinition>
-				<ColumnDefinition></ColumnDefinition>
-			</Grid.ColumnDefinitions>
-			<Grid.RowDefinitions>
-				<RowDefinition Height="*"></RowDefinition>
-				<RowDefinition Height="1.5*"></RowDefinition>
-			</Grid.RowDefinitions>
-			<Button x:Name="BtnAddCheater" Content="Add Cheater"
+		<Grid>
+			<Grid Margin="32,24,32,0" Panel.ZIndex="-5" Height="118" VerticalAlignment="Top">
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition></ColumnDefinition>
+					<ColumnDefinition></ColumnDefinition>
+					<ColumnDefinition></ColumnDefinition>
+					<ColumnDefinition></ColumnDefinition>
+				</Grid.ColumnDefinitions>
+				<Grid.RowDefinitions>
+					<RowDefinition Height="*"></RowDefinition>
+					<RowDefinition Height="1.5*"></RowDefinition>
+				</Grid.RowDefinitions>
+				<Button x:Name="BtnAddCheater" Content="Add Cheater"
 				HorizontalAlignment="Stretch" VerticalAlignment="Center"
 				Height="49" Margin="12,11,12,11" 
 				RenderTransformOrigin="1.635,0.554" Click="AddCheaterButtonClicked"
 				Grid.Column="0" Grid.Row="1" FontSize="14" IsDefault="False" />
-			<Button x:Name="BtnAutoStatus" Content="Status Key Bind"
+				<Button x:Name="BtnAutoStatus" Content="Status Key Bind"
 				HorizontalAlignment="Stretch" VerticalAlignment="Center"
 				Height="49" Margin="12,11,12,11" 
 				RenderTransformOrigin="1.635,0.554" Click="StatusButtonClicked"
 				Grid.Column="1" Grid.Row="1" FontSize="14"/>
-			<Button x:Name="BtnImport" Content="Import"
+				<Button x:Name="BtnImport" Content="Import"
 				HorizontalAlignment="Stretch" VerticalAlignment="Center"
 				Height="49" Margin="12,11,12,11" 
 				RenderTransformOrigin="0.52,1.485" Click="ImportClicked"
 				Grid.Column="2" Grid.Row="1" FontSize="14"/>
-			<Button x:Name="BtnExport" Content="Export"
+				<Button x:Name="BtnExport" Content="Export"
 				HorizontalAlignment="Stretch" VerticalAlignment="Center"
 				Height="49" Margin="12,11,12,11" 
 				Click="ExportClicked" Grid.Column="3" Grid.Row="1" FontSize="14"/>
 
-			<TextBox x:Name="TxtSteamID" HorizontalAlignment="Stretch"
+				<TextBox x:Name="TxtSteamID" HorizontalAlignment="Stretch"
 					 Text="STEAM:0:1:12354847" TextWrapping="Wrap" VerticalAlignment="Center" GotFocus="SteamID_GotFocus" LostFocus="SteamID_LostFocus"
 					 Height="36" Margin="12,0,12,0" FontSize="14"/>
-			<TextBox x:Name="TxtCheats" HorizontalAlignment="Stretch"
+				<TextBox x:Name="TxtCheats" HorizontalAlignment="Stretch"
 					 Text="Spinbot, Aimbot, Wallhacks" TextWrapping="Wrap"
 					 VerticalAlignment="Center" Height="36" GotFocus="Cheats_GotFocus"
 					 LostFocus="Cheats_LostFocus" Grid.Column="1" Margin="12,0,12,0" FontSize="14" TabIndex="1"/>
-			<TextBox x:Name="TxtThreatLevel" HorizontalAlignment="Stretch"
+				<TextBox x:Name="TxtThreatLevel" HorizontalAlignment="Stretch"
 					 Text="1-10" TextWrapping="Wrap" VerticalAlignment="Center"
 					 Height="36" GotFocus="ThreatLevel_GotFocus" LostFocus="ThreatLevel_LostFocus"
 					 Grid.Column="2" Margin="12,0,12,0" FontSize="14" TabIndex="2"/>
-			<TextBox x:Name="TxtName" HorizontalAlignment="Stretch" Text="The Suspect"
+				<TextBox x:Name="TxtName" HorizontalAlignment="Stretch" Text="The Suspect"
 					 TextWrapping="Wrap" VerticalAlignment="Center" Height="36"
 					 GotFocus="Name_GotFocus" LostFocus="Name_LostFocus"
 					 Grid.Column="3" Margin="12,0,12,0" FontSize="14" TabIndex="3"
 					 />
-		</Grid>
-		<ScrollViewer Margin="32,160,32,36">
-			<Grid Background="#FF232323" x:Name="ConnectedUserGrid" VerticalAlignment="Top">
-				<Grid.ColumnDefinitions>
-					<!--Picture-->
-					<ColumnDefinition 
+			</Grid>
+			<ScrollViewer Margin="32,160,32,36">
+				<Grid Background="#FF232323" x:Name="ConnectedUserGrid" VerticalAlignment="Top">
+					<Grid.ColumnDefinitions>
+						<!--Picture-->
+						<ColumnDefinition 
 						Width="Auto"
 						/>
-					<!--Name-->
-					<ColumnDefinition 
+						<!--Name-->
+						<ColumnDefinition 
 						Width="Auto"
 						/>
-					<!--Width="1.5*"-->
-					<!--SteamID-->
-					<ColumnDefinition 
+						<!--Width="1.5*"-->
+						<!--SteamID-->
+						<ColumnDefinition 
 						Width="Auto"
 						/>
-					<!--Width="0.9*"-->
-					<!--Cheat List-->
-					<ColumnDefinition
+						<!--Width="0.9*"-->
+						<!--Cheat List-->
+						<ColumnDefinition
 						Width="*"
 						/>
-					<!--ThreatLevel-->
-					<ColumnDefinition
+						<!--ThreatLevel-->
+						<ColumnDefinition
 						Width="*"
 						/>
-					<!--Buttons-->
-					<ColumnDefinition
+						<!--Buttons-->
+						<ColumnDefinition
 						Width="auto"
 						/>
-					<!--Width=".3*"-->
-				</Grid.ColumnDefinitions>
-				<Grid.RowDefinitions>
-					<RowDefinition />
-					<RowDefinition />
-					<RowDefinition />
-					<RowDefinition />
-					<RowDefinition />
-					<RowDefinition />
-					<RowDefinition />
-					<RowDefinition />
-					<RowDefinition />
-					<RowDefinition />
-					<RowDefinition />
-					<RowDefinition />
-					<RowDefinition />
-					<RowDefinition />
-					<RowDefinition />
-					<RowDefinition />
-					<RowDefinition />
-					<RowDefinition />
-					<RowDefinition />
-					<RowDefinition />
-					<RowDefinition />
-					<RowDefinition />
-					<RowDefinition />
-					<RowDefinition />
-					<RowDefinition />
-					<RowDefinition />
-					<RowDefinition />
-					<RowDefinition />
-					<RowDefinition />
-					<RowDefinition />
-					<RowDefinition />
-					<RowDefinition />
-					<RowDefinition />
-					<RowDefinition />
-					<RowDefinition />
-					<RowDefinition />
-					<RowDefinition />
-					<RowDefinition />
-					<RowDefinition />
-					<RowDefinition />
-					<RowDefinition />
-					<RowDefinition />
-					<RowDefinition />
-					<RowDefinition />
-					<RowDefinition />
-					<RowDefinition />
-					<RowDefinition />
-					<RowDefinition />
-					<RowDefinition />
-					<RowDefinition />
-					<RowDefinition />
-					<RowDefinition />
-					<RowDefinition />
-					<RowDefinition />
-					<RowDefinition />
-					<RowDefinition />
-					<RowDefinition />
-					<RowDefinition />
-					<RowDefinition />
-					<RowDefinition />
-					<RowDefinition />
-					<RowDefinition />
-					<RowDefinition />
-					<RowDefinition />
-					<RowDefinition />
-				</Grid.RowDefinitions>
-				<Label x:Name="LblPicture" Margin="5,0,5,0" Grid.Column="0" FontSize="14"></Label>
-				<Label x:Name="LblName" Margin="5,0,,0" Grid.Column="1" FontSize="14">Name</Label>
-				<Label x:Name="LblSteam" Margin="5,0,5,0" Grid.Column="2" FontSize="14">Steam</Label>
-				<Label x:Name="LblCheats" Margin="5,0,5,0" Grid.Column="3" FontSize="14">Cheat List</Label>
-				<Label x:Name="LblThreatLevel" Margin="5,0,5,0" Grid.Column="4" FontSize="14">Threat Level</Label>
-				<Label x:Name="LblButtonsAdd" Margin="5,0,5,0" Grid.Column="5" FontSize="14"></Label>
-			</Grid>
-		</ScrollViewer>
-		<Label Content="Players: 18" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="44,140,0,0"/>
-		<Label Content="Server: U.S West" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="128,140,0,0"/>
-	</Grid>
+						<!--Width=".3*"-->
+					</Grid.ColumnDefinitions>
+					<Grid.RowDefinitions>
+						<RowDefinition />
+						<RowDefinition />
+						<RowDefinition />
+						<RowDefinition />
+						<RowDefinition />
+						<RowDefinition />
+						<RowDefinition />
+						<RowDefinition />
+						<RowDefinition />
+						<RowDefinition />
+						<RowDefinition />
+						<RowDefinition />
+						<RowDefinition />
+						<RowDefinition />
+						<RowDefinition />
+						<RowDefinition />
+						<RowDefinition />
+						<RowDefinition />
+						<RowDefinition />
+						<RowDefinition />
+						<RowDefinition />
+						<RowDefinition />
+						<RowDefinition />
+						<RowDefinition />
+						<RowDefinition />
+						<RowDefinition />
+						<RowDefinition />
+						<RowDefinition />
+						<RowDefinition />
+						<RowDefinition />
+						<RowDefinition />
+						<RowDefinition />
+						<RowDefinition />
+						<RowDefinition />
+						<RowDefinition />
+						<RowDefinition />
+						<RowDefinition />
+						<RowDefinition />
+						<RowDefinition />
+						<RowDefinition />
+						<RowDefinition />
+						<RowDefinition />
+						<RowDefinition />
+						<RowDefinition />
+						<RowDefinition />
+						<RowDefinition />
+						<RowDefinition />
+						<RowDefinition />
+						<RowDefinition />
+						<RowDefinition />
+						<RowDefinition />
+						<RowDefinition />
+						<RowDefinition />
+						<RowDefinition />
+						<RowDefinition />
+						<RowDefinition />
+						<RowDefinition />
+						<RowDefinition />
+						<RowDefinition />
+						<RowDefinition />
+						<RowDefinition />
+						<RowDefinition />
+						<RowDefinition />
+						<RowDefinition />
+						<RowDefinition />
+					</Grid.RowDefinitions>
+					<Label x:Name="LblPicture" Margin="5,0,5,0" Grid.Column="0" FontSize="14"></Label>
+					<Label x:Name="LblName" Margin="5,0,5,0" Grid.Column="1" FontSize="14">Name</Label>
+					<Label x:Name="LblSteam" Margin="5,0,5,0" Grid.Column="2" FontSize="14">Steam</Label>
+					<Label x:Name="LblCheats" Margin="5,0,5,0" Grid.Column="3" FontSize="14">Cheat List</Label>
+					<Label x:Name="LblThreatLevel" Margin="5,0,5,0" Grid.Column="4" FontSize="14">Threat Level</Label>
+					<Label x:Name="LblButtonsAdd" Margin="5,0,5,0" Grid.Column="5" FontSize="14"></Label>
+				</Grid>
+			</ScrollViewer>
+			<Label Content="Players: 18" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="44,140,0,0"/>
+			<Label Content="Server: U.S West" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="128,140,0,0"/>
+		</Grid>
+	</StackPanel>
 
 </controls:BiaWindow>

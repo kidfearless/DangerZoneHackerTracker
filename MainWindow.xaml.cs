@@ -67,7 +67,6 @@ namespace DangerZoneHackerTracker
 		bool IsTrackingStatusKey;
 		readonly Regex SteamIDRegex;
 		readonly Regex MapNameRegex;
-		readonly Regex CommunityURLRegex;
 		readonly Regex CommunityProfilePictureRegex;
 		string CurrentMap = "";
 		readonly User[] Users = new User[MAXPLAYERS];
@@ -81,7 +80,6 @@ namespace DangerZoneHackerTracker
 			// Initialize properties
 			SteamIDRegex = new Regex(string.Format(@"# *\d+ *(\d+) *{0}(.*){0} *(STEAM_\d:\d:\d+)", "\""));
 			MapNameRegex = new Regex(@"map\s+: (\w+)");
-			CommunityURLRegex = new Regex(@"(\d+)");
 			CommunityProfilePictureRegex = new Regex(string.Format(@"<link rel={0}image_src{0} href={0}(.*){0}>", '"'));
 
 			InitializeDatabase();
@@ -289,25 +287,11 @@ namespace DangerZoneHackerTracker
 			});
 		}
 
-		private void OnClientConnected(User user)
-		{
-			Users[user.Index] = user;
-			
-		}
-
 		private void OnClientDisconnected(User user)
 		{
 			Users[user.Index] = null;
 
 			user.Dispose();
-		}
-
-		private void OnMapChanged(string oldMap, string currentMap)
-		{
-			foreach (var user in Users.Where(u => u != null))
-			{
-				OnClientDisconnected(user);
-			}
 		}
 
 		#region event handlers
@@ -386,7 +370,7 @@ namespace DangerZoneHackerTracker
 				SteamID steamAccount;
 				if (TxtSteamID.Text.Contains("community"))
 				{
-					var steam64 = CommunityURLRegex.Match(TxtSteamID.Text).Groups[1].Value;
+					var steam64 = SteamID.CommunityURLRegex.Match(TxtSteamID.Text).Groups[1].Value;
 					steamAccount = new SteamID(Convert.ToUInt64(steam64));
 				}
 				else
@@ -442,6 +426,10 @@ namespace DangerZoneHackerTracker
 			}
 		}
 
+		private void MenuItem_Click(object sender, RoutedEventArgs e)
+		{
+			new BulkAddWindow().Show();
+		}
 		#endregion
 		#region Placeholder handlers
 		private void SteamID_GotFocus(object sender, RoutedEventArgs e)
@@ -732,11 +720,5 @@ namespace DangerZoneHackerTracker
 			user.Image.SetGridRow(user.Index);
 		}
 		#endregion
-
-		private void MenuItem_Click(object sender, RoutedEventArgs e)
-		{
-			BulkAddWindow add = new BulkAddWindow();
-			add.Show();
-		}
 	}
 }

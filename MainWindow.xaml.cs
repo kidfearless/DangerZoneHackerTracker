@@ -68,6 +68,7 @@ namespace DangerZoneHackerTracker
 		readonly Regex SteamIDRegex;
 		readonly Regex MapNameRegex;
 		readonly Regex CommunityProfilePictureRegex;
+		readonly Regex HostNameRegex;
 		string CurrentMap = "";
 		readonly User[] Users = new User[MAXPLAYERS];
 		System.Timers.Timer CronTimer;
@@ -80,6 +81,7 @@ namespace DangerZoneHackerTracker
 			// Initialize properties
 			SteamIDRegex = new Regex(string.Format(@"# *\d+ *(\d+) *{0}(.*){0} *(STEAM_\d:\d:\d+)", "\""));
 			MapNameRegex = new Regex(@"map\s+: (\w+)");
+			HostNameRegex = new Regex(@" *hostname *: *(.+)");
 			CommunityProfilePictureRegex = new Regex(string.Format(@"<link rel={0}image_src{0} href={0}(.*){0}>", '"'));
 
 			InitializeDatabase();
@@ -188,13 +190,20 @@ namespace DangerZoneHackerTracker
 				{
 					foreach (var u in Users)
 					{
-						if(u != null)
+						if (u != null)
 						{
 							Users[u.Index] = null;
 							disconnectedUsers[u.Index] = u;
 						}
 					}
 					CurrentMap = mapMatch.Groups[1].Value;
+				}
+				#endregion
+				#region hostname
+				var hostMatch = HostNameRegex.Match(line);
+				if(hostMatch.Success)
+				{
+					LblServer.Dispatcher.Invoke(() => LblServer.Content = "Server: " + hostMatch.Groups[1].Value);
 				}
 				#endregion
 				var match = SteamIDRegex.Match(line);
@@ -246,45 +255,47 @@ namespace DangerZoneHackerTracker
 			{
 				try
 				{
-
-			
-				foreach (var user in disconnectedUsers.Values)
-				{
-					Users[user.Index] = null;
-					foreach (var element in user.Elements)
+					foreach (var user in disconnectedUsers.Values)
 					{
-						ConnectedUserGrid.Children.Remove(element);
-					}
-				}
-				foreach (var user in newlyConnectedUsers.Values)
-				{
-					Users[user.Index] = user;
+						Users[user.Index] = null;
+						foreach (var element in user.Elements)
+						{
+							ConnectedUserGrid.Children.Remove(element);
+						}
 
-					var db = new DatabaseConnection();
-					// create a Cheater table object to work from. Changes to this object will be reflected in the db.
-					var cheater = db.Table<Cheater>().SingleOrDefault(e => e.AccountID == user.SteamID.AccountID);
-					if (cheater != null)
+						ConnectedUserGrid.Children.Remove(user.Image);
+					}
+				} catch { }
+				try
+				{
+					foreach (var user in newlyConnectedUsers.Values)
 					{
-						ShowToastAsync(
-							title: $"Hacker {user.Name} Found In Game",
-							message: $"Threat Level: {cheater.ThreatLevel}\n" +
-									$"Known Cheats: {cheater.CheatList}\n" +
-									$"Previous Name: {cheater.LastKnownName}",
-							duration: TimeSpan.FromSeconds(10.0));
-						cheater.LastKnownName = user.Name;
-						PlayHax();
-						user.Alerted = true;
-						user.Cheater = cheater;
-						db.InsertOrReplace(cheater, typeof(Cheater));
-					}
+						Users[user.Index] = user;
 
-					CreateUserRow(user);
-				}
-				}
-				catch
-				{
-				}
+						var db = new DatabaseConnection();
+						// create a Cheater table object to work from. Changes to this object will be reflected in the db.
+						var cheater = db.Table<Cheater>().SingleOrDefault(e => e.AccountID == user.SteamID.AccountID);
+						if (cheater != null)
+						{
+							ShowToastAsync(
+								title: $"Hacker {user.Name} Found In Game",
+								message: $"Threat Level: {cheater.ThreatLevel}\n" +
+										$"Known Cheats: {cheater.CheatList}\n" +
+										$"Previous Name: {cheater.LastKnownName}",
+								duration: TimeSpan.FromSeconds(10.0));
+							cheater.LastKnownName = user.Name;
+							PlayHax();
+							user.Alerted = true;
+							user.Cheater = cheater;
+							db.InsertOrReplace(cheater, typeof(Cheater));
+						}
+
+						CreateUserRow(user);
+					}
+				} catch { }
 			});
+
+			LblPlayerCount.Dispatcher.Invoke(() => LblPlayerCount.Content = "Players: " + Users.Where(u => u != null).Count().ToString());
 		}
 
 		private void OnClientDisconnected(User user)

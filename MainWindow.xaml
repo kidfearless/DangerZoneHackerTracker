@@ -11,12 +11,16 @@
 	<controls:BiaWindow.Icon>
 		<ImageBrush ImageSource="/Resources/DZ_ICON.png" Stretch="Fill"/>
 	</controls:BiaWindow.Icon>
-	<StackPanel>
-		<Menu>
+	<Grid>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="24"></RowDefinition>
+			<RowDefinition Height="*"/>
+		</Grid.RowDefinitions>
+		<Menu Grid.Row="0">
 			<MenuItem Header="Bulk Import" Click="MenuItem_Click"></MenuItem>
 		</Menu>
-		<Grid>
-			<Grid Margin="32,24,32,0" Panel.ZIndex="-5" Height="118" VerticalAlignment="Top">
+		<Grid Grid.Row="1" Margin="0,0,0,0">
+			<Grid Margin="32,0,32,0" Panel.ZIndex="-5" Height="118" VerticalAlignment="Top">
 				<Grid.ColumnDefinitions>
 					<ColumnDefinition></ColumnDefinition>
 					<ColumnDefinition></ColumnDefinition>
@@ -64,7 +68,7 @@
 					 Grid.Column="3" Margin="12,0,12,0" FontSize="14" TabIndex="3"
 					 />
 			</Grid>
-			<ScrollViewer Margin="32,160,32,36">
+			<ScrollViewer Margin="32,148,32,36">
 				<Grid Background="#FF232323" x:Name="ConnectedUserGrid" VerticalAlignment="Top">
 					<Grid.ColumnDefinitions>
 						<!--Picture-->
@@ -170,9 +174,9 @@
 					<Label x:Name="LblButtonsAdd" Margin="5,0,5,0" Grid.Column="5" FontSize="14"></Label>
 				</Grid>
 			</ScrollViewer>
-			<Label Content="Players: 18" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="44,140,0,0"/>
-			<Label Content="Server: U.S West" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="128,140,0,0"/>
+			<Label x:Name="LblPlayerCount" Content="Players: 0" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="44,124,0,0"/>
+			<Label x:Name="LblServer" Content="Server: N/A" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="128,124,0,0"/>
 		</Grid>
-	</StackPanel>
+	</Grid>
 
 </controls:BiaWindow>

@@ -52,7 +52,7 @@ namespace DangerZoneHackerTracker
 			ProfileDataRegex = new Regex(@"g_rgProfileData = ({.+});");
 		}
 
-		private async void Button_Click(object sender, RoutedEventArgs e)
+		private void Button_Click(object sender, RoutedEventArgs e)
 		{
 			var lines = TxtBox.Text.Split(new char[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries).ToList();
 			TxtBox.Text = "";
@@ -69,7 +69,12 @@ namespace DangerZoneHackerTracker
 			taskCompleted.Wait();
 			this.TxtBox.Dispatcher.Invoke(() =>
 			{
+
 				TxtBox.Text = string.Join('\n', returnLines);
+				if(TxtBox.Text.Length != 0 && !string.IsNullOrWhiteSpace(TxtBox.Text))
+				{
+					TxtBlockWarning.Visibility = Visibility.Visible;
+				}
 			});
 		}
 
@@ -198,6 +203,43 @@ namespace DangerZoneHackerTracker
 			{
 				TxtBox.Text = "https://steamcommunity.com/id/kidfearless/";
 			}
+		}
+
+		private void TxtBox_GotKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
+		{
+			if (TxtBox.Text == "https://steamcommunity.com/id/kidfearless/")
+			{
+				TxtBox.Text = "";
+			}
+		}
+
+		private void TxtBox_LostKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
+		{
+			if (TxtBox.Text == "")
+			{
+				TxtBox.Text = "https://steamcommunity.com/id/kidfearless/";
+			}
+		}
+
+		private void TxtBox_TextChanged(object sender, TextChangedEventArgs e)
+		{
+			if(!this.IsInitialized)
+			{
+				return;
+			}
+			if (TxtBox.Text == "")
+			{
+				TxtBlockWarning.Visibility = Visibility.Hidden;
+				BtnAdd.IsEnabled = false;
+			}
+			else
+			{
+				BtnAdd.IsEnabled = true;
+			}
+		}
+
+		private void BiaWindow_MouseDown(object sender, MouseButtonEventArgs e)
+		{
 		}
 	}
 }

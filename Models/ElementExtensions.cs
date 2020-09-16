@@ -10,5 +10,7 @@ namespace DangerZoneHackerTracker.Models
 	{
 		public static void SetGridColumn(this UIElement element, int column) => Grid.SetColumn(element, column);
 		public static void SetGridRow(this UIElement element, int column) => Grid.SetRow(element, column);
+
+		public static void SetZIndex(this UIElement element, int index) => Panel.SetZIndex(element, index);
 	}
 }

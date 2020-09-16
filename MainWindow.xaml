@@ -19,8 +19,8 @@
 		<Menu Grid.Row="0">
 			<MenuItem Header="Bulk Import" Click="MenuItem_Click"></MenuItem>
 		</Menu>
-		<Grid Grid.Row="1" Margin="0,0,0,0">
-			<Grid Margin="32,0,32,0" Panel.ZIndex="-5" Height="118" VerticalAlignment="Top">
+		<Grid Grid.Row="1" Margin="0,-5,0,0">
+			<Grid Margin="32,0,32,0" Height="100" VerticalAlignment="Top">
 				<Grid.ColumnDefinitions>
 					<ColumnDefinition></ColumnDefinition>
 					<ColumnDefinition></ColumnDefinition>
@@ -29,26 +29,26 @@
 				</Grid.ColumnDefinitions>
 				<Grid.RowDefinitions>
 					<RowDefinition Height="*"></RowDefinition>
-					<RowDefinition Height="1.5*"></RowDefinition>
+					<RowDefinition Height="*"></RowDefinition>
 				</Grid.RowDefinitions>
 				<Button x:Name="BtnAddCheater" Content="Add Cheater"
 				HorizontalAlignment="Stretch" VerticalAlignment="Center"
-				Height="49" Margin="12,11,12,11" 
-				RenderTransformOrigin="1.635,0.554" Click="AddCheaterButtonClicked"
+				Height="45" Margin="12,5,12,5" 
+				Click="AddCheaterButtonClicked"
 				Grid.Column="0" Grid.Row="1" FontSize="14" IsDefault="False" />
 				<Button x:Name="BtnAutoStatus" Content="Status Key Bind"
 				HorizontalAlignment="Stretch" VerticalAlignment="Center"
-				Height="49" Margin="12,11,12,11" 
-				RenderTransformOrigin="1.635,0.554" Click="StatusButtonClicked"
+				Height="45" Margin="12,5,12,5" 
+				Click="StatusButtonClicked"
 				Grid.Column="1" Grid.Row="1" FontSize="14"/>
 				<Button x:Name="BtnImport" Content="Import"
 				HorizontalAlignment="Stretch" VerticalAlignment="Center"
-				Height="49" Margin="12,11,12,11" 
-				RenderTransformOrigin="0.52,1.485" Click="ImportClicked"
+				Height="45" Margin="12,5,12,5" 
+				Click="ImportClicked"
 				Grid.Column="2" Grid.Row="1" FontSize="14"/>
 				<Button x:Name="BtnExport" Content="Export"
 				HorizontalAlignment="Stretch" VerticalAlignment="Center"
-				Height="49" Margin="12,11,12,11" 
+				Height="45" Margin="12,5,12,5" 
 				Click="ExportClicked" Grid.Column="3" Grid.Row="1" FontSize="14"/>
 
 				<TextBox x:Name="TxtSteamID" HorizontalAlignment="Stretch"
@@ -68,7 +68,7 @@
 					 Grid.Column="3" Margin="12,0,12,0" FontSize="14" TabIndex="3"
 					 />
 			</Grid>
-			<ScrollViewer Margin="32,148,32,36">
+			<ScrollViewer Margin="32,124,32,36">
 				<Grid Background="#FF232323" x:Name="ConnectedUserGrid" VerticalAlignment="Top">
 					<Grid.ColumnDefinitions>
 						<!--Picture-->
@@ -166,16 +166,16 @@
 						<RowDefinition />
 						<RowDefinition />
 					</Grid.RowDefinitions>
-					<Label x:Name="LblPicture" Margin="5,0,5,0" Grid.Column="0" FontSize="14"></Label>
-					<Label x:Name="LblName" Margin="5,0,5,0" Grid.Column="1" FontSize="14">Name</Label>
-					<Label x:Name="LblSteam" Margin="5,0,5,0" Grid.Column="2" FontSize="14">Steam</Label>
-					<Label x:Name="LblCheats" Margin="5,0,5,0" Grid.Column="3" FontSize="14">Cheat List</Label>
-					<Label x:Name="LblThreatLevel" Margin="5,0,5,0" Grid.Column="4" FontSize="14">Threat Level</Label>
-					<Label x:Name="LblButtonsAdd" Margin="5,0,5,0" Grid.Column="5" FontSize="14"></Label>
+					<Label x:Name="LblPicture" Margin="5,0,5,0" Grid.Column="0" FontSize="12"></Label>
+					<Label x:Name="LblName" Margin="5,0,5,0" Grid.Column="1" FontSize="12">Name</Label>
+					<Label x:Name="LblSteam" Margin="5,0,5,0" Grid.Column="2" FontSize="12">Steam</Label>
+					<Label x:Name="LblCheats" Margin="5,0,5,0" Grid.Column="3" FontSize="12">Cheat List</Label>
+					<Label x:Name="LblThreatLevel" Margin="5,0,5,0" Grid.Column="4" FontSize="12">Threat Level</Label>
+					<Label x:Name="LblButtonsAdd" Margin="5,0,5,0" Grid.Column="5" FontSize="12"></Label>
 				</Grid>
 			</ScrollViewer>
-			<Label x:Name="LblPlayerCount" Content="Players: 0" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="44,124,0,0"/>
-			<Label x:Name="LblServer" Content="Server: N/A" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="128,124,0,0"/>
+			<Label x:Name="LblPlayerCount" Content="Players: 0" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="44,102,0,0"/>
+			<Label x:Name="LblServer" Content="Server: N/A" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="128,102,0,0"/>
 		</Grid>
 	</Grid>
 

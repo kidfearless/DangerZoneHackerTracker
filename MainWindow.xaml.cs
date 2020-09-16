@@ -243,59 +243,61 @@ namespace DangerZoneHackerTracker
 
 			}
 
-			if (preCount != 0 && totalUsers > 0)
-			{
-				foreach (var user in replacedUsers)
-				{
-					OnClientDisconnected(user);
-				}
-			}
-
 			ConnectedUserGrid.Dispatcher.Invoke(() =>
 			{
+				if (preCount != 0 && totalUsers > 0)
+				{
+					foreach (var user in replacedUsers)
+					{
+						OnClientDisconnected(user);
+					}
+				}
+
 				try
 				{
 					foreach (var user in disconnectedUsers.Values)
 					{
-						Users[user.Index] = null;
-						foreach (var element in user.Elements)
-						{
-							ConnectedUserGrid.Children.Remove(element);
-						}
-
-						ConnectedUserGrid.Children.Remove(user.Image);
+						OnClientDisconnected(user);						
 					}
 				} catch { }
 				try
 				{
 					foreach (var user in newlyConnectedUsers.Values)
 					{
-						Users[user.Index] = user;
-
-						var db = new DatabaseConnection();
-						// create a Cheater table object to work from. Changes to this object will be reflected in the db.
-						var cheater = db.Table<Cheater>().SingleOrDefault(e => e.AccountID == user.SteamID.AccountID);
-						if (cheater != null)
-						{
-							ShowToastAsync(
-								title: $"Hacker {user.Name} Found In Game",
-								message: $"Threat Level: {cheater.ThreatLevel}\n" +
-										$"Known Cheats: {cheater.CheatList}\n" +
-										$"Previous Name: {cheater.LastKnownName}",
-								duration: TimeSpan.FromSeconds(10.0));
-							cheater.LastKnownName = user.Name;
-							PlayHax();
-							user.Alerted = true;
-							user.Cheater = cheater;
-							db.InsertOrReplace(cheater, typeof(Cheater));
-						}
-
-						CreateUserRow(user);
+						OnClientConnected(user);
 					}
 				} catch { }
 			});
 
 			LblPlayerCount.Dispatcher.Invoke(() => LblPlayerCount.Content = "Players: " + Users.Where(u => u != null).Count().ToString());
+		}
+
+		private void OnClientConnected(User user, bool announce = true)
+		{
+			Users[user.Index] = user;
+
+			var db = new DatabaseConnection();
+			// create a Cheater table object to work from. Changes to this object will be reflected in the db.
+			var cheater = db.Table<Cheater>().SingleOrDefault(e => e.AccountID == user.SteamID.AccountID);
+			if (cheater != null)
+			{
+				if(announce)
+				{
+					ShowToastAsync(
+						title: $"Hacker {user.Name} Found In Game",
+						message: $"Threat Level: {cheater.ThreatLevel}\n" +
+								$"Known Cheats: {cheater.CheatList}\n" +
+								$"Previous Name: {cheater.LastKnownName}",
+						duration: TimeSpan.FromSeconds(10.0));
+				cheater.LastKnownName = user.Name;
+					PlayHax();
+				}
+				user.Alerted = true;
+				user.Cheater = cheater;
+				db.InsertOrReplace(cheater, typeof(Cheater));
+			}
+
+			CreateUserRow(user);
 		}
 
 		private void OnClientDisconnected(User user)
@@ -592,28 +594,34 @@ namespace DangerZoneHackerTracker
 
 			GetProfilePictureAsync(user);
 
-			var addButton = new Button()
-			{
-				Content = "Add",
-				Margin = new Thickness(0, 0, 10, 0)
-			};
 
-			// since we aren't tracking any of our objects outside of this function we create an anonymous function so we can reference the intended objects.
-			addButton.Click += (object sender, RoutedEventArgs e) =>
-			{
-				using var db = new DatabaseConnection();
-				int.TryParse(threatLevel.Text, out int threat);
-				db.InsertOrReplace(new Cheater()
-				{
-					LastKnownName = user.Name,
-					AccountID = user.SteamID.AccountID,
-					CheatList = cheatList.Text,
-					ThreatLevel = threat
-				});
+			// add our controls to the grid
+			ConnectedUserGrid.Children.Add(lName);
+			ConnectedUserGrid.Children.Add(steamID);
+			ConnectedUserGrid.Children.Add(cheatList);
+			ConnectedUserGrid.Children.Add(threatLevel);
 
-				cheatList.Text = "";
-				threatLevel.Text = "";
-			};
+
+			user.Elements.Add(lName);
+			user.Elements.Add(steamID);
+			user.Elements.Add(cheatList);
+			user.Elements.Add(threatLevel);
+
+
+			// tell our controls which grid column they should use.
+			lName.SetGridColumn(Grid.GetColumn(LblName));
+			steamID.SetGridColumn(Grid.GetColumn(LblSteam));
+			cheatList.SetGridColumn(Grid.GetColumn(LblCheats));
+			threatLevel.SetGridColumn(Grid.GetColumn(LblThreatLevel));
+			
+
+
+			lName.SetGridRow(user.Index);
+			steamID.SetGridRow(user.Index);
+			cheatList.SetGridRow(user.Index);
+			threatLevel.SetGridRow(user.Index);
+
+			
 
 			if (user.Cheater != null)
 			{
@@ -624,38 +632,81 @@ namespace DangerZoneHackerTracker
 						Fill = new SolidColorBrush(Color.FromRgb(160, 0, 0))
 					};
 
-					user.Elements.Add(rect);
+					rect.SetZIndex(-1);
+
+					user.Elements.Insert(0, rect);
 					ConnectedUserGrid.Children.Add(rect);
 					rect.SetGridColumn(i);
 					rect.SetGridRow(user.Index);
 				}
+
+				var removeButton = new Button()
+				{
+					Content = "Remove",
+					Margin = new Thickness(0, 0, 10, 0)
+				};
+
+				removeButton.Click += (object sender, RoutedEventArgs e) =>
+				{
+					if (user.Cheater == null)
+					{
+						return;
+					}
+
+					using var db = new DatabaseConnection();
+					var cheater = db.Table<Cheater>().FirstOrDefault(u => u.AccountID == user.SteamID.AccountID);
+					if (cheater != null)
+					{
+						var query = $"DELETE FROM Cheaters WHERE {nameof(Cheater.AccountID)} = {cheater.AccountID}";
+						db.Query<Cheater>(query);
+					}
+
+					cheatList.Text = "";
+					threatLevel.Text = "";
+					OnClientDisconnected(user);
+					user.Cheater = null;
+					OnClientConnected(user, announce: false);
+				};
+
+
+				ConnectedUserGrid.Children.Add(removeButton);
+				user.Elements.Add(removeButton);
+				removeButton.SetGridColumn(Grid.GetColumn(LblThreatLevel) + 1);
+				removeButton.SetGridRow(user.Index);
 			}
+			else
+			{
+				var addButton = new Button()
+				{
+					Content = "Add",
+					Margin = new Thickness(0, 0, 10, 0)
+				};
 
-			// add our controls to the grid
-			ConnectedUserGrid.Children.Add(lName);
-			ConnectedUserGrid.Children.Add(steamID);
-			ConnectedUserGrid.Children.Add(cheatList);
-			ConnectedUserGrid.Children.Add(threatLevel);
-			ConnectedUserGrid.Children.Add(addButton);
+				// since we aren't tracking any of our objects outside of this function we create an anonymous function so we can reference the intended objects.
+				addButton.Click += (object sender, RoutedEventArgs e) =>
+				{
+					using var db = new DatabaseConnection();
+					int.TryParse(threatLevel.Text, out int threat);
+					db.InsertOrReplace(new Cheater()
+					{
+						LastKnownName = user.Name,
+						AccountID = user.SteamID.AccountID,
+						CheatList = cheatList.Text,
+						ThreatLevel = threat
+					});
 
-			user.Elements.Add(lName);
-			user.Elements.Add(steamID);
-			user.Elements.Add(cheatList);
-			user.Elements.Add(threatLevel);
-			user.Elements.Add(addButton);
+					cheatList.Text = "";
+					threatLevel.Text = "";
 
-			// tell our controls which grid column they should use.
-			lName.SetGridColumn(Grid.GetColumn(LblName));
-			steamID.SetGridColumn(Grid.GetColumn(LblSteam));
-			cheatList.SetGridColumn(Grid.GetColumn(LblCheats));
-			threatLevel.SetGridColumn(Grid.GetColumn(LblThreatLevel));
-			addButton.SetGridColumn(Grid.GetColumn(LblThreatLevel) + 1);
+					OnClientDisconnected(user);
+					OnClientConnected(user);
+				};
 
-			lName.SetGridRow(user.Index);
-			steamID.SetGridRow(user.Index);
-			cheatList.SetGridRow(user.Index);
-			threatLevel.SetGridRow(user.Index);
-			addButton.SetGridRow(user.Index);
+				ConnectedUserGrid.Children.Add(addButton);
+				user.Elements.Add(addButton);
+				addButton.SetGridColumn(Grid.GetColumn(LblThreatLevel) + 1);
+				addButton.SetGridRow(user.Index);
+			}
 		}
 
 		private Image CreateImage(string source, double width = 48.0, double height = 48.0)

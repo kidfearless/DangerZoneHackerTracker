@@ -8,7 +8,8 @@
 		mc:Ignorable="d"
 		WindowStartupLocation="CenterScreen" Title="Bulk Add"
 		Style="{StaticResource BiaWindowSpaceSavingStyle}"
-        Height="240" Width="320" MinHeight="240" MinWidth="320" >
+        Height="240" Width="320" MinHeight="240" MinWidth="320" 
+		MouseDown="BiaWindow_MouseDown">
 
 	<Grid Margin="0">
 		<Grid.ColumnDefinitions>
@@ -22,10 +23,13 @@
 		<TextBox x:Name="TxtBox" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
 				 Height="Auto" VerticalContentAlignment="Top" AcceptsReturn="True"
 				 GotFocus="TxtBox_GotFocus" LostFocus="TxtBox_LostFocus"
+				 GotKeyboardFocus="TxtBox_GotKeyboardFocus" LostKeyboardFocus="TxtBox_LostKeyboardFocus"
+				 TextChanged="TxtBox_TextChanged"
 				 Text="https://steamcommunity.com/id/kidfearless/" TextWrapping="NoWrap" Grid.ColumnSpan="3"/>
 		<Button  Content="Add" HorizontalAlignment="Left"
+				 x:Name="BtnAdd"
 				 Margin="0,0,10,0" Grid.Row="1" VerticalAlignment="Center"
 				 Width="56" Grid.Column="1" Click="Button_Click"/>
-		<TextBlock Grid.Column="0" HorizontalAlignment="Left" Margin="10" FontSize="12" Grid.Row="1" VerticalAlignment="Center" Height="19" Foreground="Red" >Could not parse the following lines</TextBlock>
+		<TextBlock x:Name="TxtBlockWarning" Grid.Column="0" Visibility="Hidden" HorizontalAlignment="Left" Margin="10" FontSize="12" Grid.Row="1" VerticalAlignment="Center" Height="19" Foreground="Red" >Could not parse the following lines</TextBlock>
 	</Grid>
 </controls:BiaWindow>

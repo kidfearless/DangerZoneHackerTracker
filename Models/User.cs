@@ -31,6 +31,7 @@ namespace DangerZoneHackerTracker.Models
 					parent.Children.Remove(element);
 				});
 			};
+			this.Elements.Clear();
 			if(Image != null)
 			{
 				var parent = (Grid)Image.Parent;
@@ -39,6 +40,7 @@ namespace DangerZoneHackerTracker.Models
 					parent.Children.Remove(Image);
 				});
 			}
+			this.Image = null;
 		}
 	}
 

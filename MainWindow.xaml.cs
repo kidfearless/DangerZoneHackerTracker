@@ -699,7 +699,7 @@ namespace DangerZoneHackerTracker
 					threatLevel.Text = "";
 
 					OnClientDisconnected(user);
-					OnClientConnected(user);
+					OnClientConnected(user, announce: false);
 				};
 
 				ConnectedUserGrid.Children.Add(addButton);

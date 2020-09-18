@@ -26,6 +26,7 @@ using Path = System.IO.Path;
 using System.Reflection;
 using Windows.UI.Xaml.Controls.Primitives;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 
 
 /*
@@ -62,250 +63,50 @@ namespace DangerZoneHackerTracker
 	/// 
 	public partial class MainWindow
 	{
-		const int MAXPLAYERS = 65;
-		Key StatusKey;
+		public static MainWindow Current;
+		public static EventHandler WindowInitialized;
 		bool IsTrackingStatusKey;
-		readonly Regex SteamIDRegex;
-		readonly Regex MapNameRegex;
+
 		readonly Regex CommunityProfilePictureRegex;
-		readonly Regex HostNameRegex;
-		string CurrentMap = "";
-		readonly User[] Users = new User[MAXPLAYERS];
-		System.Timers.Timer CronTimer;
+
 
 		[PermissionSet(SecurityAction.Demand, Name = "FullTrust")]
 		public MainWindow()
 		{
 			InitializeComponent();
 
-			// Initialize properties
-			SteamIDRegex = new Regex(string.Format(@"# *\d+ *(\d+) *{0}(.*){0} *(STEAM_\d:\d:\d+)", "\""));
-			MapNameRegex = new Regex(@"map\s+: (\w+)");
-			HostNameRegex = new Regex(@" *hostname *: *(.+)");
 			CommunityProfilePictureRegex = new Regex(string.Format(@"<link rel={0}image_src{0} href={0}(.*){0}>", '"'));
 
-			InitializeDatabase();
-			CreateTimer();
+
+			Current = this;
+			WindowInitialized?.Invoke(this, EventArgs.Empty);
+			var args = new object[] { null, null };
+
+			// this ugly thing calls the events on the display thread
+			App.Current.UserConnected += (User user, object args) => Dispatcher.Invoke(() => OnUserConnected(user, args));
+			App.Current.UserDisconnected += (User user, object args) => Dispatcher.Invoke(() => OnUserDisconnected(user, args));
 		}
 
-		private void CreateTimer()
+		private void OnUserDisconnected(User user, object args = null)
 		{
-			// Create a repeating timer to check the console file
-			CronTimer = new System.Timers.Timer(TimeSpan.FromSeconds(3).TotalMilliseconds);
-			CronTimer.Elapsed += Timer_CheckStatus;
-			CronTimer.Start();
+			user.Dispose();
 		}
 
-		private void InitializeDatabase()
+		private void OnUserConnected(User user, object args = null)
 		{
-			if (!Directory.Exists(Path.GetDirectoryName(Constants.DatabasePath)))
-			{
-				Directory.CreateDirectory(Path.GetDirectoryName(Constants.DatabasePath));
-			}
-			// Create Table
-			using var db = new DatabaseConnection();
-			db.CreateTable<Cheater>();
-			try
-			{
-				db.CreateTable<Settings>();
-			}
-			catch (Exception)
-			{
-				db.DropTable<Settings>();
-				db.CreateTable<Settings>();
-			}
-
-			var setting = db.Table<Settings>().SingleOrDefault();
-			if (setting != null && setting.StatusKey != null)
-			{
-				BtnAutoStatus.Content = $"<{setting.StatusKey}>";
-				StatusKey = (Key)setting.StatusKey;
-			}
-		}
-
-		/// <summary>
-		/// Callback for our repeating timer. Sends the key presses and reads the console file.
-		/// </summary>
-		/// <param name="sender">N/A</param>
-		/// <param name="e">N/A</param>
-		private void Timer_CheckStatus(object sender, System.Timers.ElapsedEventArgs e)
-		{
-			try
-			{
-				// Do a delayed read on the console after we've done a status update.
-				new System.Threading.Timer(ReadConsole, sender, TimeSpan.FromSeconds(0.2).Milliseconds, Timeout.Infinite);
-
-				// we have a key bound to status and are in game, then start activating our status key
-				if (StatusKey != Key.None && Models.Window.GetActiveWindowTitle() == "Counter-Strike: Global Offensive")
-				{
-					Keyboard.SendKey(KeyConvert.ToDirectXKeyCode(StatusKey), false, Keyboard.InputType.Keyboard);
-					Keyboard.SendKey(KeyConvert.ToDirectXKeyCode(StatusKey), true, Keyboard.InputType.Keyboard);
-				}
-			}
-			catch { }
-		}
-
-		/// <summary>
-		/// Reads and processes the console.log file
-		/// </summary>
-		/// <param name="nill">Unused parameter that the Timer class requires</param>
-		private async void ReadConsole(object nill)
-		{
-			//Open the file in a way that won't bother csgo.
-			var path = Models.Window.GetProcessLocation("csgo");
-			if (string.IsNullOrEmpty(path))
-			{
-#if DEBUG
-				path = @"C:\Program Files (x86)\Steam\steamapps\common\Counter-Strike Global Offensive\csgo";
-#else
-				return;
-#endif
-			}
-			var consolePath = Path.Combine(Path.GetDirectoryName(path), "csgo");
-			using var stream = File.Open(Path.Combine(consolePath, "console.log"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite);
-			using var reader = new StreamReader(stream, true);
-			if (reader.BaseStream.Length <= 0)
-			{
-				return;
-			}
-
-			var lines = (await reader.ReadToEndAsync()).Split('\n', StringSplitOptions.RemoveEmptyEntries);
-
-			//clear the file to save on performance.
-			stream.SetLength(0);
-			stream.Close();
-
-			var replacedUsers = Users.Where(u => u != null).ToList();
-			var disconnectedUsers = new Dictionary<int, User>();
-			var newlyConnectedUsers = new Dictionary<int, User>();
-			int preCount = replacedUsers.Count;
-			int totalUsers = 0;
-
-			foreach (var line in lines)
-			{
-				#region mapchange
-				var mapMatch = MapNameRegex.Match(line);
-				// The first group match will be the current map on the server
-				if (mapMatch.Success && mapMatch.Groups[1].Value != CurrentMap)
-				{
-					foreach (var u in Users)
-					{
-						if (u != null)
-						{
-							Users[u.Index] = null;
-							disconnectedUsers[u.Index] = u;
-						}
-					}
-					CurrentMap = mapMatch.Groups[1].Value;
-				}
-				#endregion
-				#region hostname
-				var hostMatch = HostNameRegex.Match(line);
-				if(hostMatch.Success)
-				{
-					LblServer.Dispatcher.Invoke(() => LblServer.Content = "Server: " + hostMatch.Groups[1].Value);
-				}
-				#endregion
-				var match = SteamIDRegex.Match(line);
-				// check for an exact match
-				if (!match.Success)
-				{
-					continue;
-				}
-
-				// create our user from the match. Index 0 is the full match, every index after is our groups
-				User user = new User()
-				{
-					Index = Convert.ToInt32(match.Groups[1].Value),
-					Name = match.Groups[2].Value,
-					SteamID = new SteamID(match.Groups[3].Value)
-				};
-
-				totalUsers++;
-
-				var foundUser = Users.SingleOrDefault(e => e != null && e.Index == user.Index && user.SteamID.AccountID == e.SteamID.AccountID);
-				replacedUsers?.Remove(foundUser);
-
-				// we already had someone here under that index
-				if (Users[user.Index] != null)
-				{
-					// is it someone different?
-					if (Users[user.Index].SteamID.AccountID != user.SteamID.AccountID)
-					{
-						disconnectedUsers[user.Index] = (Users[user.Index]);
-						newlyConnectedUsers[user.Index] = (user);
-					}
-				}
-				else
-				{
-					newlyConnectedUsers[user.Index] = (user);
-				}
-
-			}
-
-			ConnectedUserGrid.Dispatcher.Invoke(() =>
-			{
-				if (preCount != 0 && totalUsers > 0)
-				{
-					foreach (var user in replacedUsers)
-					{
-						OnClientDisconnected(user);
-					}
-				}
-
-				try
-				{
-					foreach (var user in disconnectedUsers.Values)
-					{
-						OnClientDisconnected(user);						
-					}
-				} catch { }
-				try
-				{
-					foreach (var user in newlyConnectedUsers.Values)
-					{
-						OnClientConnected(user);
-					}
-				} catch { }
-			});
-
-			LblPlayerCount.Dispatcher.Invoke(() => LblPlayerCount.Content = "Players: " + Users.Where(u => u != null).Count().ToString());
-		}
-
-		private void OnClientConnected(User user, bool announce = true)
-		{
-			Users[user.Index] = user;
-
-			var db = new DatabaseConnection();
-			// create a Cheater table object to work from. Changes to this object will be reflected in the db.
-			var cheater = db.Table<Cheater>().SingleOrDefault(e => e.AccountID == user.SteamID.AccountID);
-			if (cheater != null)
-			{
-				if(announce)
-				{
-					ShowToastAsync(
-						title: $"Hacker {user.Name} Found In Game",
-						message: $"Threat Level: {cheater.ThreatLevel}\n" +
-								$"Known Cheats: {cheater.CheatList}\n" +
-								$"Previous Name: {cheater.LastKnownName}",
-						duration: TimeSpan.FromSeconds(10.0));
-				cheater.LastKnownName = user.Name;
-					PlayHax();
-				}
-				user.Alerted = true;
-				user.Cheater = cheater;
-				db.InsertOrReplace(cheater, typeof(Cheater));
-			}
-
 			CreateUserRow(user);
 		}
 
-		private void OnClientDisconnected(User user)
+		public void SetPlayerCount(int count)
 		{
-			Users[user.Index] = null;
-
-			user.Dispose();
+			LblPlayerCount.Dispatcher.Invoke(() => LblPlayerCount.Content = $"Players: {count}");
 		}
+
+		public void SetServerName(string name)
+		{
+			LblServer.Dispatcher.Invoke(() => LblServer.Content = $"Server: {name}");
+		}
+
 
 		#region event handlers
 		private void ExportClicked(object sender, RoutedEventArgs e)
@@ -338,7 +139,6 @@ namespace DangerZoneHackerTracker
 					catch { }
 				}
 			}
-
 		}
 
 		private void ImportClicked(object sender, RoutedEventArgs e)
@@ -425,12 +225,12 @@ namespace DangerZoneHackerTracker
 				{
 					BtnAutoStatus.Content = "<N/A>";
 
-					StatusKey = Key.None;
+					App.Current.StatusKey = Key.None;
 				}
 				else
 				{
 					BtnAutoStatus.Content = $"<{e.Key}>";
-					StatusKey = e.Key;
+					App.Current.StatusKey = e.Key;
 					using var db = new DatabaseConnection();
 					db.InsertOrReplace(new Settings() { StatusKey = e.Key }, typeof(Settings));
 				}
@@ -505,51 +305,7 @@ namespace DangerZoneHackerTracker
 			}
 		}
 		#endregion
-		#region helper functions
-		/// <summary>
-		/// Wrapper for sending notifications.
-		/// </summary>
-		/// <param name="cheater">Player that we are notifying for</param>
-		public async void ShowToastAsync(Cheater cheater)
-		{
-			var notificationManager = new NotificationManager();
-			await notificationManager.ShowAsync(new NotificationContent()
-			{
-				Title = $"Hacker {cheater.LastKnownName} Found In Game",
-				Message = $"Threat Level: {cheater.ThreatLevel}\n" +
-							$"Known Cheats: {cheater.CheatList}",
-				Type = NotificationType.Error
-			}, expirationTime: TimeSpan.FromSeconds(10));
-		}
-		public async void ShowToastAsync(string title = "", string message = "", NotificationType type = NotificationType.Error, TimeSpan? duration = null)
-		{
-			var notificationManager = new NotificationManager();
-			await notificationManager.ShowAsync(new NotificationContent()
-			{
-				Title = title,
-				Message = message,
-				Type = type
-			}, expirationTime: duration);
-		}
-		/// <summary>
-		/// Stock to play a particular sound
-		/// </summary>
-		private void PlayHax()
-		{
-			var stream = Assembly.GetExecutingAssembly()
-								 .GetManifestResourceStream("DangerZoneHackerTracker.Resources.haaaaxedit.mp3");
-			var outputDevice = new WaveOutEvent();
-			var audioFile = new Mp3FileReader(stream);
-			outputDevice.PlaybackStopped += (object sender, StoppedEventArgs e) =>
-			{
-				audioFile.Dispose();
-				audioFile = null;
-				stream.Dispose();
-				stream = null;
-			};
-			outputDevice.Init(audioFile);
-			outputDevice.Play();
-		}
+
 
 		/// <summary>
 		/// Helper method to create a row in the grid with the data we want in it.
@@ -613,7 +369,7 @@ namespace DangerZoneHackerTracker
 			steamID.SetGridColumn(Grid.GetColumn(LblSteam));
 			cheatList.SetGridColumn(Grid.GetColumn(LblCheats));
 			threatLevel.SetGridColumn(Grid.GetColumn(LblThreatLevel));
-			
+
 
 
 			lName.SetGridRow(user.Index);
@@ -621,7 +377,7 @@ namespace DangerZoneHackerTracker
 			cheatList.SetGridRow(user.Index);
 			threatLevel.SetGridRow(user.Index);
 
-			
+
 
 			if (user.Cheater != null)
 			{
@@ -663,9 +419,9 @@ namespace DangerZoneHackerTracker
 
 					cheatList.Text = "";
 					threatLevel.Text = "";
-					OnClientDisconnected(user);
+					OnUserDisconnected(user);
 					user.Cheater = null;
-					OnClientConnected(user, announce: false);
+					OnUserConnected(user);
 				};
 
 
@@ -687,19 +443,21 @@ namespace DangerZoneHackerTracker
 				{
 					using var db = new DatabaseConnection();
 					int.TryParse(threatLevel.Text, out int threat);
-					db.InsertOrReplace(new Cheater()
+
+					user.Cheater = new Cheater()
 					{
 						LastKnownName = user.Name,
 						AccountID = user.SteamID.AccountID,
 						CheatList = cheatList.Text,
 						ThreatLevel = threat
-					});
+					};
+					db.InsertOrReplace(user.Cheater);
 
 					cheatList.Text = "";
 					threatLevel.Text = "";
 
-					OnClientDisconnected(user);
-					OnClientConnected(user, announce: false);
+					OnUserDisconnected(user);
+					OnUserConnected(user);
 				};
 
 				ConnectedUserGrid.Children.Add(addButton);
@@ -708,6 +466,7 @@ namespace DangerZoneHackerTracker
 				addButton.SetGridRow(user.Index);
 			}
 		}
+
 
 		private Image CreateImage(string source, double width = 48.0, double height = 48.0)
 		{
@@ -781,6 +540,6 @@ namespace DangerZoneHackerTracker
 			user.Image.SetGridColumn(0);
 			user.Image.SetGridRow(user.Index);
 		}
-		#endregion
+
 	}
 }

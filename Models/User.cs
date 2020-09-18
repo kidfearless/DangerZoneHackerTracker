@@ -6,7 +6,7 @@ using System.Windows.Controls;
 
 namespace DangerZoneHackerTracker.Models
 {
-	class User : IDisposable
+	public class User : IDisposable
 	{
 		public int Index;
 		public string Name;

@@ -11,5 +11,6 @@ namespace DangerZoneHackerTracker.Models
 		[PrimaryKey]
 		public int Key { get; set; } = 1;
 		public Key? StatusKey { get; set; }
+		public double Volume { get; set; } = 1.0;
 	}
 }

@@ -62,11 +62,56 @@ namespace DangerZoneHackerTracker
 			HostNameRegex = new Regex(@" *hostname *: *(.+)");
 
 			InitializeDatabase();
+			InitializeConsole();
 			CreateTimer();
+
 
 			MainWindow.WindowInitialized += MainWindow_Initialized;
 			UserDisconnected += OnClientDisconnected;
 			UserConnected += OnClientConnected;
+		}
+
+		private async void InitializeConsole()
+		{
+			try
+			{
+				var db = new DatabaseConnection();
+				var settings = db.Settings;
+
+				var csgoPath = CSGO.GetDirectory();
+				if (csgoPath == null)
+				{
+					return;
+				}
+
+				#region modify valve.rc
+				var rcFile = Path.Combine(csgoPath, "cfg/valve.rc");
+				using var rcstream = File.Open(rcFile, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite);
+				using var rcreader = new StreamReader(rcstream, true);
+				var lines = (await rcreader.ReadToEndAsync()).Split(new char[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+				if (!lines.Contains("exec _hackertracker.cfg"))
+				{
+					using var writer = new StreamWriter(rcstream);
+					await writer.WriteLineAsync("exec _hackertracker.cfg");
+				}
+				#endregion
+				#region create _hackertracker.cfg
+				var configPath = Path.Combine(csgoPath, "cfg/_hackertracker.cfg");
+				using var configStream = File.Open(configPath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite);
+				using var configWriter = new StreamWriter(configStream);
+				configStream.SetLength(0);
+				await configWriter.WriteLineAsync("con_logfile console.log");
+				if(settings.StatusKey != null && settings.StatusKey != Key.None)
+				{
+					var key = KeyConvert.ToCSGOKeyBind((Key)settings.StatusKey);
+					if(key != CSGO.KeyBinds.NONE)
+					{
+						await configWriter.WriteLineAsync($"bind {CSGO.KeyBindStrings[key]} status");
+					}
+				}
+				#endregion
+			}
+			catch { }
 		}
 
 		private void MainWindow_Initialized(object sender, EventArgs e)
@@ -102,7 +147,11 @@ namespace DangerZoneHackerTracker
 			}
 
 			var setting = db.Table<Settings>().SingleOrDefault();
-			if (setting != null && setting.StatusKey != null)
+			if(setting == null)
+			{
+				db.Insert(new Settings(), typeof(Settings));
+			}
+			else if (setting.StatusKey != null)
 			{
 				StatusKey = (Key)setting.StatusKey;
 			}

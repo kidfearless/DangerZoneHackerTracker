@@ -11,6 +11,16 @@ namespace DangerZoneHackerTracker.Models
 		[PrimaryKey]
 		public int Key { get; set; } = 1;
 		public Key? StatusKey { get; set; }
+
+		public void UpdateStatusKey(Key key, DatabaseConnection connection)
+		{
+			StatusKey = key;
+			connection.Update(this, typeof(Settings));
+			StatusKeyChanged?.Invoke(this, EventArgs.Empty);
+		}
 		public double Volume { get; set; } = 1.0;
+		public bool InitialWindowShowed { get; set; }
+
+		public static EventHandler StatusKeyChanged;
 	}
 }

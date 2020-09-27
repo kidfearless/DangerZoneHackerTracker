@@ -80,7 +80,6 @@ namespace DangerZoneHackerTracker
 
 			Current = this;
 			WindowInitialized?.Invoke(this, EventArgs.Empty);
-			var args = new object[] { null, null };
 
 			// this ugly thing calls the events on the display thread
 			App.Current.UserConnected += (User user, object args) => Dispatcher.Invoke(() => OnUserConnected(user, args));
@@ -221,7 +220,8 @@ namespace DangerZoneHackerTracker
 		{
 			if (IsTrackingStatusKey)
 			{
-				if (e.Key == Key.Escape)
+				var key = e.SystemKey == Key.None ? e.Key : e.SystemKey;
+				if (key == Key.Escape)
 				{
 					BtnAutoStatus.Content = "<N/A>";
 
@@ -229,10 +229,11 @@ namespace DangerZoneHackerTracker
 				}
 				else
 				{
-					BtnAutoStatus.Content = $"<{e.Key}>";
-					App.Current.StatusKey = e.Key;
+					BtnAutoStatus.Content = $"<{key}>";
+					App.Current.StatusKey = key;
 					using var db = new DatabaseConnection();
-					db.InsertOrReplace(new Settings() { StatusKey = e.Key }, typeof(Settings));
+					var setting = db.Table<Settings>().First();
+					setting.UpdateStatusKey(key, db);
 				}
 
 				IsTrackingStatusKey = false;

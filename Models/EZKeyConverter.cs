@@ -299,6 +299,16 @@ namespace DangerZoneHackerTracker
 				case Key.X: return Keyboard.DirectXKeyStrokes.DIK_X;
 				case Key.Y: return Keyboard.DirectXKeyStrokes.DIK_Y;
 				case Key.Z: return Keyboard.DirectXKeyStrokes.DIK_Z;
+				case Key.D0: return Keyboard.DirectXKeyStrokes.DIK_0;
+				case Key.D1: return Keyboard.DirectXKeyStrokes.DIK_1;
+				case Key.D2: return Keyboard.DirectXKeyStrokes.DIK_2;
+				case Key.D3: return Keyboard.DirectXKeyStrokes.DIK_3;
+				case Key.D4: return Keyboard.DirectXKeyStrokes.DIK_4;
+				case Key.D5: return Keyboard.DirectXKeyStrokes.DIK_5;
+				case Key.D6: return Keyboard.DirectXKeyStrokes.DIK_6;
+				case Key.D7: return Keyboard.DirectXKeyStrokes.DIK_7;
+				case Key.D8: return Keyboard.DirectXKeyStrokes.DIK_8;
+				case Key.D9: return Keyboard.DirectXKeyStrokes.DIK_9;
 				case Key.LWin: return Keyboard.DirectXKeyStrokes.DIK_LWIN;
 				case Key.RWin: return Keyboard.DirectXKeyStrokes.DIK_RWIN;
 				case Key.Apps: return Keyboard.DirectXKeyStrokes.DIK_APPS;
@@ -396,6 +406,16 @@ namespace DangerZoneHackerTracker
 				case Key.X: return CSGO.KeyBinds.X;
 				case Key.Y: return CSGO.KeyBinds.Y;
 				case Key.Z: return CSGO.KeyBinds.Z;
+				case Key.D0: return CSGO.KeyBinds.ZERO;
+				case Key.D1: return CSGO.KeyBinds.ONE;
+				case Key.D2: return CSGO.KeyBinds.TWO;
+				case Key.D3: return CSGO.KeyBinds.THREE;
+				case Key.D4: return CSGO.KeyBinds.FOUR;
+				case Key.D5: return CSGO.KeyBinds.FIVE;
+				case Key.D6: return CSGO.KeyBinds.SIX;
+				case Key.D7: return CSGO.KeyBinds.SEVEN;
+				case Key.D8: return CSGO.KeyBinds.EIGHT;
+				case Key.D9: return CSGO.KeyBinds.NINE;
 				case Key.LWin: return CSGO.KeyBinds.LWIN;
 				case Key.RWin: return CSGO.KeyBinds.RWIN;
 				case Key.NumPad0: return CSGO.KeyBinds.PAD_0;
@@ -434,6 +454,7 @@ namespace DangerZoneHackerTracker
 				case Key.RightCtrl: return CSGO.KeyBinds.RCONTROL;
 				case Key.LeftAlt: return CSGO.KeyBinds.LALT;
 				case Key.RightAlt: return CSGO.KeyBinds.RALT;
+				case Key.Apps: return CSGO.KeyBinds.APP;
 				default: return CSGO.KeyBinds.NONE;
 			}
 		}

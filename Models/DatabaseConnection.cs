@@ -7,8 +7,6 @@ namespace DangerZoneHackerTracker.Models
 {
 	class DatabaseConnection : SQLiteConnection
 	{
-		public Settings Settings { get => this.Table<Settings>().First(); }
-
 		public DatabaseConnection() : base(Constants.DatabasePath, Constants.Flags)
 		{
 		}

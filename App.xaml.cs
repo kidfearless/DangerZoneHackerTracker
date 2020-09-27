@@ -62,27 +62,24 @@ namespace DangerZoneHackerTracker
 			HostNameRegex = new Regex(@" *hostname *: *(.+)");
 
 			InitializeDatabase();
-			InitializeConsole();
+			UpdateConfig();
 			CreateTimer();
 
 
 			MainWindow.WindowInitialized += MainWindow_Initialized;
 			UserDisconnected += OnClientDisconnected;
 			UserConnected += OnClientConnected;
+			Settings.StatusKeyChanged += (object sender, EventArgs e) => UpdateConfig();			
 		}
 
-		private async void InitializeConsole()
+		private async void UpdateConfig()
 		{
 			try
 			{
 				var db = new DatabaseConnection();
-				var settings = db.Settings;
+				var settings = db.Table<Settings>().First();
 
 				var csgoPath = CSGO.GetDirectory();
-				if (csgoPath == null)
-				{
-					return;
-				}
 
 				#region modify valve.rc
 				var rcFile = Path.Combine(csgoPath, "cfg/valve.rc");
@@ -117,6 +114,15 @@ namespace DangerZoneHackerTracker
 		private void MainWindow_Initialized(object sender, EventArgs e)
 		{
 			((MainWindow)sender).BtnAutoStatus.Content = $"<{StatusKey}>";
+
+			using var db = new DatabaseConnection();
+			var settings = db.Table<Settings>().First();
+			if (!settings.InitialWindowShowed)
+			{
+				new FirstTimeSetupWindow().ShowDialog();
+				settings.InitialWindowShowed = true;
+				db.Update(settings, typeof(Settings));
+			}
 		}
 
 		private void CreateTimer()
@@ -136,15 +142,7 @@ namespace DangerZoneHackerTracker
 			// Create Table
 			using var db = new DatabaseConnection();
 			db.CreateTable<Cheater>();
-			try
-			{
-				db.CreateTable<Settings>();
-			}
-			catch (Exception)
-			{
-				db.DropTable<Settings>();
-				db.CreateTable<Settings>();
-			}
+			db.CreateTable<Settings>();
 
 			var setting = db.Table<Settings>().SingleOrDefault();
 			if(setting == null)

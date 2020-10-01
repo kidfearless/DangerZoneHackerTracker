@@ -19,6 +19,7 @@ namespace DangerZoneHackerTracker.Models
 			StatusKeyChanged?.Invoke(this, EventArgs.Empty);
 		}
 		public double Volume { get; set; } = 1.0;
+		public double UpdateRate { get; set; } = 3.0;
 		public bool InitialWindowShowed { get; set; }
 
 		public static EventHandler StatusKeyChanged;

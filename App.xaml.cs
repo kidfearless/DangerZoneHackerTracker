@@ -115,6 +115,7 @@ namespace DangerZoneHackerTracker
 
 		private void MainWindow_Initialized(object sender, EventArgs e)
 		{
+			SteamGroup.Run();
 			((MainWindow)sender).BtnAutoStatus.Content = $"<{StatusKey}>";
 
 			using var db = new DatabaseConnection();

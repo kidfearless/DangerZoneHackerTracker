@@ -18,6 +18,7 @@
 		</Grid.RowDefinitions>
 		<Menu Grid.Row="0">
 			<MenuItem Header="Bulk Import" Click="MenuItem_Click"></MenuItem>
+			<MenuItem Header="Settings" Click="SettingsMenu_Clicked"></MenuItem>
 		</Menu>
 		<Grid Grid.Row="1" Margin="0,-5,0,0">
 			<Grid Margin="32,0,32,0" Height="100" VerticalAlignment="Top">

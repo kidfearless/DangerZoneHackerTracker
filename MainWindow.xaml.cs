@@ -542,5 +542,9 @@ namespace DangerZoneHackerTracker
 			user.Image.SetGridRow(user.Index);
 		}
 
+		private void SettingsMenu_Clicked(object sender, RoutedEventArgs e)
+		{
+			new SettingsWindow().ShowDialog();
+		}
 	}
 }

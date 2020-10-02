@@ -4,10 +4,11 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <UseWPF>true</UseWPF>
-    <ApplicationIcon>favicon.ico</ApplicationIcon>
+    <ApplicationIcon></ApplicationIcon>
     <Version>1.4.0</Version>
     <Authors>KiD Fearless</Authors>
     <PackageIcon>DZ_ICON.png</PackageIcon>
+    <LangVersion>preview</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>

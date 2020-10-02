@@ -1,4 +1,5 @@
-﻿using DangerZoneHackerTracker.Models;
+﻿using Biaui.Controls;
+using DangerZoneHackerTracker.Models;
 using NAudio.Wave;
 using Notifications.Wpf.Core;
 using System;
@@ -47,6 +48,7 @@ namespace DangerZoneHackerTracker
 		internal delegate void CheaterEvent(User user, object args);
 		internal UserEvent UserDisconnected;
 		internal UserEvent UserConnected;
+		private static bool IsTrackingStatusKey = false;
 
 
 		public App()
@@ -69,7 +71,7 @@ namespace DangerZoneHackerTracker
 			MainWindow.WindowInitialized += MainWindow_Initialized;
 			UserDisconnected += OnClientDisconnected;
 			UserConnected += OnClientConnected;
-			Settings.StatusKeyChanged += (object sender, EventArgs e) => UpdateConfig();			
+			Settings.StatusKeyChanged += (object sender, EventArgs e) => UpdateConfig();
 		}
 
 		private async void UpdateConfig()
@@ -372,6 +374,39 @@ namespace DangerZoneHackerTracker
 			outputDevice.Play();
 		}
 
+		// I don't really have anywhere else to put this
+		public static void TrackStatusKey(Button statusButton, BiaWindow window)
+		{
+			statusButton.Click += (object sender, RoutedEventArgs e) =>
+			{
+				IsTrackingStatusKey = true;
+				statusButton.Content = "<...>";
+			};
+
+			window.KeyDown += (object sender, KeyEventArgs e) =>
+			{
+				if (IsTrackingStatusKey)
+				{
+					var key = e.SystemKey == Key.None ? e.Key : e.SystemKey;
+					if (key == Key.Escape)
+					{
+						statusButton.Content = "<N/A>";
+
+						App.Current.StatusKey = Key.None;
+					}
+					else
+					{
+						statusButton.Content = $"<{key}>";
+						App.Current.StatusKey = key;
+						using var db = new DatabaseConnection();
+						var setting = db.Table<Settings>().First();
+						setting.UpdateStatusKey(key, db);
+					}
+
+					IsTrackingStatusKey = false;
+				}
+			};
+		}
 
 		private void CurrentDomain_FirstChanceException(object sender, System.Runtime.ExceptionServices.FirstChanceExceptionEventArgs e)
 		{

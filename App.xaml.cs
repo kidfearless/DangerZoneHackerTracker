@@ -57,7 +57,6 @@ namespace DangerZoneHackerTracker
 			AppDomain.CurrentDomain.FirstChanceException += CurrentDomain_FirstChanceException;
 
 			this.DispatcherUnhandledException += App_DispatcherUnhandledException;
-
 			// Initialize properties
 			SteamIDRegex = new Regex(string.Format(@"# *\d+ *(\d+) *{0}(.*){0} *(STEAM_\d:\d:\d+)", "\""));
 			MapNameRegex = new Regex(@"map\s+: (\w+)");
@@ -83,7 +82,7 @@ namespace DangerZoneHackerTracker
 
 				var csgoPath = CSGO.GetDirectory();
 
-				#region modify valve.rc
+#region modify valve.rc
 				var rcFile = Path.Combine(csgoPath, "cfg/valve.rc");
 				using var rcstream = File.Open(rcFile, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite);
 				using var rcreader = new StreamReader(rcstream, true);
@@ -93,8 +92,8 @@ namespace DangerZoneHackerTracker
 					using var writer = new StreamWriter(rcstream);
 					await writer.WriteLineAsync("exec _hackertracker.cfg");
 				}
-				#endregion
-				#region create _hackertracker.cfg
+#endregion
+#region create _hackertracker.cfg
 				var configPath = Path.Combine(csgoPath, "cfg/_hackertracker.cfg");
 				using var configStream = File.Open(configPath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite);
 				using var configWriter = new StreamWriter(configStream);
@@ -108,14 +107,13 @@ namespace DangerZoneHackerTracker
 						await configWriter.WriteLineAsync($"bind {CSGO.KeyBindStrings[key]} status");
 					}
 				}
-				#endregion
+#endregion
 			}
 			catch { }
 		}
 
 		private void MainWindow_Initialized(object sender, EventArgs e)
 		{
-			SteamGroup.Run();
 			((MainWindow)sender).BtnAutoStatus.Content = $"<{StatusKey}>";
 
 			using var db = new DatabaseConnection();
@@ -218,7 +216,7 @@ namespace DangerZoneHackerTracker
 
 			foreach (var line in lines)
 			{
-				#region mapchange
+#region mapchange
 				var mapMatch = MapNameRegex.Match(line);
 				// The first group match will be the current map on the server
 				if (mapMatch.Success && mapMatch.Groups[1].Value != CurrentMap)
@@ -233,14 +231,14 @@ namespace DangerZoneHackerTracker
 					}
 					CurrentMap = mapMatch.Groups[1].Value;
 				}
-				#endregion
-				#region hostname
+#endregion
+#region hostname
 				var hostMatch = HostNameRegex.Match(line);
 				if (hostMatch.Success)
 				{
 					MainWindow.SetServerName(hostMatch.Groups[1].Value);
 				}
-				#endregion
+#endregion
 				var match = SteamIDRegex.Match(line);
 				// check for an exact match
 				if (!match.Success)
@@ -408,7 +406,6 @@ namespace DangerZoneHackerTracker
 				}
 			};
 		}
-
 		private void CurrentDomain_FirstChanceException(object sender, System.Runtime.ExceptionServices.FirstChanceExceptionEventArgs e)
 		{
 			LogException(e.Exception);

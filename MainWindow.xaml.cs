@@ -56,7 +56,6 @@ players : 9 humans, 3 bots (16/0 max) (not hibernating)
 */
 namespace DangerZoneHackerTracker
 {
-
 	/// <summary>
 	/// Interaction logic for MainWindow.xaml
 	/// </summary>
@@ -177,38 +176,7 @@ namespace DangerZoneHackerTracker
 		/// <param name="e"></param>
 		private void AddCheaterButtonClicked(object sender, RoutedEventArgs e)
 		{
-			try
-			{
-				SteamID steamAccount;
-				if (TxtSteamID.Text.Contains("community"))
-				{
-					var steam64 = SteamID.CommunityURLRegex.Match(TxtSteamID.Text).Groups[1].Value;
-					steamAccount = new SteamID(Convert.ToUInt64(steam64));
-				}
-				else
-				{
-					steamAccount = new SteamID(TxtSteamID.Text);
-				}
-
-				using var db = new DatabaseConnection();
-				int.TryParse(TxtThreatLevel.Text.Trim(), out int threat);
-				db.InsertOrReplace(new Cheater()
-				{
-					AccountID = steamAccount.AccountID,
-					ThreatLevel = threat,
-					CheatList = TxtCheats.Text,
-					LastKnownName = TxtName.Text
-				});
-			}
-			catch
-			{
-			}
-
-			// reset the default placeholders
-			TxtCheats.Text = "Spinbot, Aimbot, Wallhacks";
-			TxtName.Text = "The Suspect";
-			TxtSteamID.Text = "STEAM:0:1:12354847";
-			TxtThreatLevel.Text = "1-10";
+			new AddCheater().Show();
 		}
 
 		/// <summary>
@@ -245,68 +213,6 @@ namespace DangerZoneHackerTracker
 			new BulkAddWindow().Show();
 		}
 		#endregion
-		#region Placeholder handlers
-		private void SteamID_GotFocus(object sender, RoutedEventArgs e)
-		{
-			if (TxtSteamID.Text == "STEAM:0:1:12354847")
-			{
-				TxtSteamID.Text = "";
-			}
-		}
-		private void SteamID_LostFocus(object sender, RoutedEventArgs e)
-		{
-			if (TxtSteamID.Text == "")
-			{
-				TxtSteamID.Text = "STEAM:0:1:12354847";
-			}
-		}
-
-		private void ThreatLevel_GotFocus(object sender, RoutedEventArgs e)
-		{
-			if (TxtThreatLevel.Text == "1-10")
-			{
-				TxtThreatLevel.Text = "";
-			}
-		}
-		private void ThreatLevel_LostFocus(object sender, RoutedEventArgs e)
-		{
-			if (TxtThreatLevel.Text == "")
-			{
-				TxtThreatLevel.Text = "1-10";
-			}
-		}
-
-		private void Name_GotFocus(object sender, RoutedEventArgs e)
-		{
-			if (TxtName.Text == "The Suspect")
-			{
-				TxtName.Text = "";
-			}
-		}
-		private void Name_LostFocus(object sender, RoutedEventArgs e)
-		{
-			if (TxtName.Text == "")
-			{
-				TxtName.Text = "The Suspect";
-			}
-		}
-
-		private void Cheats_GotFocus(object sender, RoutedEventArgs e)
-		{
-			if (TxtCheats.Text == "Spinbot, Aimbot, Wallhacks")
-			{
-				TxtCheats.Text = "";
-			}
-		}
-		private void Cheats_LostFocus(object sender, RoutedEventArgs e)
-		{
-			if (TxtCheats.Text == "")
-			{
-				TxtCheats.Text = "Spinbot, Aimbot, Wallhacks";
-			}
-		}
-		#endregion
-
 
 		/// <summary>
 		/// Helper method to create a row in the grid with the data we want in it.
@@ -467,7 +373,6 @@ namespace DangerZoneHackerTracker
 				addButton.SetGridRow(user.Index);
 			}
 		}
-
 
 		private Image CreateImage(string source, double width = 48.0, double height = 48.0)
 		{

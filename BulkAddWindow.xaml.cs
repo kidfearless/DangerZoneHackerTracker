@@ -27,166 +27,66 @@ namespace DangerZoneHackerTracker
 	/// </summary>
 	public partial class BulkAddWindow
 	{
-		private struct SteamUser
-		{
-			public string UserName;
-			public SteamID SteamID;
-		}
-
-		private struct ProfileData
-		{
-			public string URL;
-			public string SteamID;
-			public string PersonaName;
-			public string Summary;
-		}
-
-		private readonly Regex ProfileDataRegex;
-		List<string> returnLines;
-		List<SteamUser> users;
+		List<string> ReturnLines;
 
 
 		public BulkAddWindow()
 		{
 			InitializeComponent();
-			ProfileDataRegex = new Regex(@"g_rgProfileData = ({.+});");
 		}
 
 		private void Button_Click(object sender, RoutedEventArgs e)
 		{
-			var lines = TxtBox.Text.Split(new char[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries).ToList();
+			// Get each line in the text box and put it in a list
+			var lines = TxtBox.Text.Split(new char[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+			ReturnLines = new List<string>(lines);
+			
+			// Wipe it early so that it looks like we're faster than we actually are.
 			TxtBox.Text = "";
-			using var db = new DatabaseConnection();
-			returnLines = new List<string>(lines);
-			users = new List<SteamUser>();
+
+			// for every line in the text box we run it through the ReadLine function
 			var taskList = new List<Task>();
 			foreach (var line in lines)
 			{
-				var task = Task.Run(async () => await ReadLine(line));
+				var task = Task.Run(() => ReadLine(line));
 				taskList.Add(task);
 			}
-			var taskCompleted = Task.WhenAll(taskList);
-			taskCompleted.Wait();
-			this.TxtBox.Dispatcher.Invoke(() =>
-			{
 
-				TxtBox.Text = string.Join('\n', returnLines);
-				if(TxtBox.Text.Length != 0 && !string.IsNullOrWhiteSpace(TxtBox.Text))
-				{
-					TxtBlockWarning.Visibility = Visibility.Visible;
-				}
-			});
+			// We create a new Task for when all of the tasks in our task list are completed.
+			Task.WhenAll(taskList).Wait();
+
+			// recreate the list with any values that couldn't be parsed.
+			TxtBox.Text = string.Join('\n', ReturnLines);
+			if(TxtBox.Text.Length != 0 && !string.IsNullOrWhiteSpace(TxtBox.Text))
+			{
+				TxtBlockWarning.Visibility = Visibility.Visible;
+			}
 		}
 
 		private async Task<int> ReadLine(string line)
 		{
-			try
+			var tuple = await Steam.TryGetProfileDataAsync(line);
+			if(tuple.Result)
 			{
-				SteamUser user = new SteamUser()
-				{
-					UserName = "<The Suspect>"
-				};
 				string cheats = "<Bulk Added User>";
 				int threat = -1;
-
-				var match = SteamID.CommunityURLRegex.Match(line);
-				if (match.Success)
-				{
-					try
-					{
-						var profileData = await GetProfileDataAsync(match.Value);
-						user.SteamID = new SteamID(Convert.ToUInt64(profileData.SteamID));
-						user.UserName = profileData.PersonaName;
-						returnLines.Remove(line);
-						users.Add(user);
-					}
-					catch
-					{
-						if (ulong.TryParse(match.Groups[1].Value, out ulong steamid))
-						{
-							user.SteamID = new SteamID(steamid);
-							returnLines.Remove(line);
-
-							users.Add(user);
-						}
-						else
-						{
-							return 1;
-							//continue;
-						}
-					}
-				}
-				else
-				{
-					user.SteamID = new SteamID(line);
-					if (user.SteamID.AccountID != 0)
-					{
-						returnLines.Remove(line);
-						users.Add(user);
-					}
-					else
-					{
-						return 1;
-						//continue;
-					}
-				}
-
-				var foundCheater = new DatabaseConnection().Table<Cheater>().Any(cheat => cheat.AccountID == user.SteamID.AccountID);
+				var accountID = tuple.ProfileData.SteamID.AccountID;
+				var foundCheater = new DatabaseConnection().Table<Cheater>().Any(cheat => cheat.AccountID == accountID);
 
 				if (!foundCheater)
 				{
 					new DatabaseConnection().Insert(new Cheater()
 					{
-						AccountID = user.SteamID.AccountID,
+						AccountID = accountID,
 						ThreatLevel = threat,
 						CheatList = cheats,
-						LastKnownName = user.UserName
+						LastKnownName = tuple.ProfileData.PersonaName
 					});
 				}
-			}
-			catch (Exception exc)
-			{
+
+				this.ReturnLines.Remove(line);
 			}
 			return 0;
-		}
-
-		private async Task<ProfileData> GetProfileDataAsync(string url)
-		{
-			HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
-			var response = (HttpWebResponse)await request.GetResponseAsync();
-
-			if (response.StatusCode == HttpStatusCode.OK)
-			{
-				Stream receiveStream = response.GetResponseStream();
-				StreamReader readStream;
-
-				if (string.IsNullOrWhiteSpace(response.CharacterSet))
-				{
-					readStream = new StreamReader(receiveStream);
-				}
-				else
-				{
-					readStream = new StreamReader(receiveStream, Encoding.GetEncoding(response.CharacterSet));
-				}
-
-				string line;
-				while ((line = await readStream.ReadLineAsync()) != null)
-				{
-					var match = ProfileDataRegex.Match(line);
-					if (match.Success)
-					{
-						response.Close();
-						readStream.Close();
-
-						return JsonConvert.DeserializeObject<ProfileData>(match.Groups[1].Value);
-					}
-				}
-
-				response.Close();
-				readStream.Close();
-			}
-
-			throw new Exception($"Could not find profile data from the given url: {url}");
 		}
 
 		private void TxtBox_GotFocus(object sender, RoutedEventArgs e)

@@ -22,12 +22,11 @@
 			<RowDefinition/>
 			<RowDefinition Height="45"></RowDefinition>
 		</Grid.RowDefinitions>
-		<TextBox x:Name="TxtBox" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-				 Height="Auto" VerticalContentAlignment="Top" AcceptsReturn="True"
-				 GotFocus="TxtBox_GotFocus" LostFocus="TxtBox_LostFocus"
+		<TextBox x:Name="TxtBox" 
+				 HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Height="Auto" VerticalContentAlignment="Top" AcceptsReturn="True" TextWrapping="NoWrap"
+				 GotFocus="TxtBox_GotFocus" LostFocus="TxtBox_LostFocus" TextChanged="TxtBox_TextChanged"
 				 GotKeyboardFocus="TxtBox_GotKeyboardFocus" LostKeyboardFocus="TxtBox_LostKeyboardFocus"
-				 TextChanged="TxtBox_TextChanged"
-				 Text="https://steamcommunity.com/id/kidfearless/" TextWrapping="NoWrap" Grid.ColumnSpan="3"/>
+				 Text="https://steamcommunity.com/id/kidfearless/" Grid.ColumnSpan="3"/>
 		<Button  Content="Add" HorizontalAlignment="Left"
 				 x:Name="BtnAdd"
 				 Margin="0,0,10,0" Grid.Row="1" VerticalAlignment="Center"

@@ -39,7 +39,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="biaui" Version="1.0.22" />
+    <PackageReference Include="Biaui" Version="1.0.22" />
     <PackageReference Include="Caliburn.Micro.Core" Version="3.2.0" />
     <PackageReference Include="Microsoft.Toolkit.Uwp.Notifications" Version="6.1.1" />
     <PackageReference Include="NAudio" Version="1.10.0" />
@@ -64,12 +64,18 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="AddCheater.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="FirstTimeSetupWindow.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>
 
   <ItemGroup>
+    <Page Update="AddCheater.xaml">
+      <SubType>Designer</SubType>
+    </Page>
     <Page Update="FirstTimeSetupWindow.xaml">
       <SubType>Designer</SubType>
     </Page>

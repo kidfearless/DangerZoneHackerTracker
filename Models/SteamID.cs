@@ -239,6 +239,41 @@ namespace DangerZoneHackerTracker
 
 
 		/// <summary>
+		/// Sets the various components of this SteamID from a Steam2 "STEAM_" rendered form.
+		/// </summary>
+		/// <param name="steamId">A "STEAM_" rendered form of the SteamID.</param>
+		/// <returns><c>true</c> if this instance was successfully assigned; otherwise, <c>false</c> if the given string was in an invalid format.</returns>
+		public bool SetFromString(string steamId)
+		{
+			if (string.IsNullOrEmpty(steamId))
+			{
+				return false;
+			}
+
+			Match m = Steam2Regex.Match(steamId);
+
+			if (!m.Success)
+			{
+				return false;
+			}
+
+			if (!uint.TryParse(m.Groups["accountid"].Value, out var accId) ||
+				 !uint.TryParse(m.Groups["authserver"].Value, out var authServer) ||
+				 !int.TryParse(m.Groups["universe"].Value, out var universe))
+			{
+				return false;
+			}
+
+			this.AccountUniverse = (EUniverse)universe;
+			this.AccountInstance = 1;
+			this.AccountType = EAccountType.Individual;
+			this.AccountID = (accId << 1) | authServer;
+
+			return true;
+		}
+
+
+		/// <summary>
 		/// Sets the various components of this SteamID from a Steam2 "STEAM_" rendered form and universe.
 		/// </summary>
 		/// <param name="steamId">A "STEAM_" rendered form of the SteamID.</param>

@@ -777,6 +777,8 @@ namespace DangerZoneHackerTracker
 			return a.steamid.Data == b.steamid.Data;
 		}
 
+		public static implicit operator string(SteamID value) => value.ToString();
+
 		/// <summary>
 		/// Implements the operator !=.
 		/// </summary>

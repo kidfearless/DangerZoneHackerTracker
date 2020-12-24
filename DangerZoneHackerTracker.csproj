@@ -1,84 +1,105 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <OutputType>WinExe</OutputType>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
-    <UseWPF>true</UseWPF>
-    <ApplicationIcon></ApplicationIcon>
-    <Version>1.4.0</Version>
-    <Authors>KiD Fearless</Authors>
-    <PackageIcon>DZ_ICON.png</PackageIcon>
-    <LangVersion>preview</LangVersion>
-  </PropertyGroup>
+	<PropertyGroup>
+		<OutputType>WinExe</OutputType>
+		<TargetFramework>net5.0-windows</TargetFramework>
+		<LangVersion>9.0</LangVersion>
+		<UseWPF>true</UseWPF>
+		<ApplicationIcon>Resources\favicon.ico</ApplicationIcon>
+		<Version>2.0.0</Version>
+		<Authors>KiD Fearless</Authors>
+		<Product>DangerZoneHackerTracker</Product>
+		<Platforms>AnyCPU;x64;x86</Platforms>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <Compile Remove="Notifications.Wpf.Core\**" />
-    <EmbeddedResource Remove="Notifications.Wpf.Core\**" />
-    <None Remove="Notifications.Wpf.Core\**" />
-    <None Include="Resources\DZ_ICON.png">
-      <Pack>True</Pack>
-      <PackagePath></PackagePath>
-    </None>
-    <Page Remove="Notifications.Wpf.Core\**" />
-  </ItemGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+	  <DebugType>full</DebugType>
+	  <DebugSymbols>true</DebugSymbols>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <None Remove="haaaaxedit.mp3" />
-    <None Remove="Resources\DZ_ICON.png" />
-    <None Remove="Resources\favicon.ico" />
-    <None Remove="Resources\icon.png" />
-  </ItemGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
+	  <DebugType>full</DebugType>
+	  <DebugSymbols>true</DebugSymbols>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <EmbeddedResource Include="Resources\haaaaxedit.mp3">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </EmbeddedResource>
-    <Content Include="Resources\icon.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+	  <DebugType>full</DebugType>
+	  <DebugSymbols>true</DebugSymbols>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Biaui" Version="1.0.22" />
-    <PackageReference Include="Caliburn.Micro.Core" Version="3.2.0" />
-    <PackageReference Include="Microsoft.Toolkit.Uwp.Notifications" Version="6.1.1" />
-    <PackageReference Include="NAudio" Version="1.10.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
-    <PackageReference Include="sqlite-net-pcl" Version="1.7.335" />
-  </ItemGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+	  <DebugType>full</DebugType>
+	  <DebugSymbols>true</DebugSymbols>
+	  <OutputPath></OutputPath>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="Notifications.Wpf.Core\Notifications.Wpf.Core.csproj" />
-  </ItemGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
+	  <DebugType>full</DebugType>
+	  <DebugSymbols>true</DebugSymbols>
+	  <OutputPath />
+	</PropertyGroup>
 
-  <ItemGroup>
-    <Content Include="Resources\DZ_ICON.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+	  <DebugType>full</DebugType>
+	  <DebugSymbols>true</DebugSymbols>
+	  <OutputPath />
+	</PropertyGroup>
 
-  <ItemGroup>
-    <EmbeddedResource Include="Resources\favicon.ico">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </EmbeddedResource>
-  </ItemGroup>
+	<ItemGroup>
+	  <Compile Remove="Notifications.Wpf.Core\**" />
+	  <EmbeddedResource Remove="Notifications.Wpf.Core\**" />
+	  <None Remove="Notifications.Wpf.Core\**" />
+	  <Page Remove="Notifications.Wpf.Core\**" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <Compile Update="AddCheater.xaml.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Update="FirstTimeSetupWindow.xaml.cs">
-      <SubType>Code</SubType>
-    </Compile>
-  </ItemGroup>
 
-  <ItemGroup>
-    <Page Update="AddCheater.xaml">
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Update="FirstTimeSetupWindow.xaml">
-      <SubType>Designer</SubType>
-    </Page>
-  </ItemGroup>
+	<ItemGroup>
+	  <None Remove="app.manifest" />
+	  <None Remove="Resources\DZ_ICON.png" />
+	  <None Remove="Resources\favicon.ico" />
+	  <None Remove="Resources\haaaaxedit.mp3" />
+	  <None Remove="Resources\icon.png" />
+	  <None Remove="Views\13614349.png" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Page Remove="App.xaml" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Content Include="Resources\DZ_ICON.png">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </Content>
+	  <EmbeddedResource Include="Resources\favicon.ico" />
+	  <EmbeddedResource Include="Resources\haaaaxedit.mp3" />
+	  <Content Include="Resources\icon.png">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </Content>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Include="App.xaml" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <PackageReference Include="Biaui" Version="1.0.23" />
+	  <PackageReference Include="Microsoft.Data.Sqlite" Version="5.0.1" />
+	  <PackageReference Include="NAudio" Version="1.10.0" />
+	  <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="Notifications.Wpf.Core\Notifications.Wpf.Core.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Resource Include="Views\13614349.png" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ApplicationDefinition Update="App.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </ApplicationDefinition>
+	</ItemGroup>
 
 </Project>

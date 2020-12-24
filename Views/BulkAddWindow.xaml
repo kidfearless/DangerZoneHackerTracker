@@ -13,7 +13,7 @@
         Height="240" Width="320" MinHeight="240" MinWidth="320" 
 		MouseDown="BiaWindow_MouseDown">
 
-	<Grid Margin="0">
+	<Grid>
 		<Grid.ColumnDefinitions>
 			<ColumnDefinition Width="*"/>
 			<ColumnDefinition Width="Auto"/>

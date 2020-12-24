@@ -1,8 +1,8 @@
-﻿using DangerZoneHackerTracker.Models;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Dynamic;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -18,7 +18,6 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
-using Windows.AI.MachineLearning;
 
 namespace DangerZoneHackerTracker
 {
@@ -28,6 +27,8 @@ namespace DangerZoneHackerTracker
 	/// </summary>
 	public partial class AddCheater
 	{
+		static Settings Settings = Settings.Init();
+		static CheaterSet Cheaters = CheaterSet.Init();
 
 		public AddCheater()
 		{
@@ -36,37 +37,36 @@ namespace DangerZoneHackerTracker
 
 		private async void Button_Click(object sender, RoutedEventArgs e)
 		{
-			using var db = new DatabaseConnection();
-			var tuple = await Steam.TryGetProfileDataAsync(TxtSteam.Text);
-			if(tuple.Result)
+			SteamID steam = new();
+			string url;
+			if (!SteamID.CommunityURLRegex.IsMatch(TxtSteam.Text))
 			{
-				var cheats = string.IsNullOrWhiteSpace(TxtCheats.Text) ? "<N/A>" : TxtCheats.Text;
-				if(!int.TryParse(TxtNotes.Text, out int threat))
+				if (!steam.SetFromString(TxtSteam.Text) && !steam.SetFromSteam3String(TxtSteam.Text))
 				{
-					threat = -1;
+					return;
 				}
-
-				var cheater = db.Table<Cheater>().FirstOrDefault(c => c.AccountID == tuple.ProfileData.SteamID.AccountID);
-				if (cheater == null)
-				{
-					db.Insert(new Cheater()
-					{
-						AccountID = tuple.ProfileData.SteamID.AccountID,
-						CheatList = cheats,
-						Notes = TxtNotes.Text,
-						LastKnownName = tuple.ProfileData.PersonaName,
-						ThreatLevel = threat
-					}, typeof(Cheater));
-				}
-				else
-				{
-					cheater.CheatList = cheats;
-					cheater.ThreatLevel = threat;
-					cheater.Notes = TxtNotes.Text;
-					cheater.LastKnownName = tuple.ProfileData.PersonaName;
-					db.Update(cheater, typeof(Cheater));
-				}
+				url = $"https://steamcommunity.com/profiles/{steam.ConvertToUInt64()}/?xml=1";
 			}
+			else
+			{
+				url = $"{SteamID.CommunityURLRegex.Match(TxtSteam.Text).Value}/?xml=1";
+			}
+
+			dynamic data = await Steam.GetProfileDataAsync(url);
+			ExpandoObject steamID = data.profile.steamID;
+			var name = steamID.First().Value as string;
+			int.TryParse(TxtThreat.Text, out int threat);
+			Cheater cheater = new()
+			{
+				AccountID = Convert.ToUInt64(data.profile.steamID64),
+				CheatList = TxtCheats.Text,
+				LastKnownName = name,
+				Submitter = Settings["UserNameOverride"],
+				ThreatLevel = threat,
+				Notes = TxtNotes.Text
+			};
+
+			Cheaters.Add(cheater);
 		}
 
 		private void TxtSteam_GotFocus(object sender, RoutedEventArgs e)

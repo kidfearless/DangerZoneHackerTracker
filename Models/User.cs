@@ -1,47 +1,55 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
+using System.Dynamic;
+using System.Linq;
 using System.Text;
-using System.Windows;
+using System.Threading.Tasks;
 using System.Windows.Controls;
 
-namespace DangerZoneHackerTracker.Models
+namespace DangerZoneHackerTracker
 {
-	public class User : IDisposable
+	class UserComparer : IEqualityComparer<User>, IComparer<User>
 	{
-		public int Index;
-		public string Name;
-		public SteamID SteamID;
-		public Cheater Cheater;
-		public bool Alerted;
-		public List<FrameworkElement> Elements = new List<FrameworkElement>();
-		public Image Image;
+		// index sorting
+		public int Compare(User x, User y) => x.Index.CompareTo(y.Index);
 
-		~User()
-		{
-			this.Dispose();
-		}
-
-		public void Dispose()
-		{
-			foreach (var element in Elements)
-			{
-				var parent = (Grid)element.Parent;
-				parent?.Dispatcher.Invoke(() =>
-				{
-					parent.Children.Remove(element);
-				});
-			};
-			this.Elements.Clear();
-			if(Image != null)
-			{
-				var parent = (Grid)Image.Parent;
-				parent?.Dispatcher.Invoke(() =>
-				{
-					parent.Children.Remove(Image);
-				});
-			}
-			this.Image = null;
-		}
+		// uniqueness identifier
+		public bool Equals(User x, User y) => x.AccountID == y.AccountID;
+		public int GetHashCode([DisallowNull] User obj) => obj.AccountID.GetHashCode();
 	}
 
+	public class User : IComparable
+	{
+		public int Index { get; set; }
+
+		[DefaultValue("")]
+		public string Name { get; set; }
+
+
+		public ulong AccountID => SteamID.ConvertToUInt64();
+
+		public SteamID SteamID { get; set; }
+
+
+		public Cheater? Cheater { get; set; }
+		public bool IsCheater => Cheater != null;
+
+		/// <summary>
+		/// Expando object containing their profile data
+		/// </summary>
+		public dynamic ProfileData { get; set; }
+
+		public Image ProfilePicture { get; set; }
+
+		public int CompareTo(object obj)
+		{
+			if(obj is User other)
+			{
+				return this.Index.CompareTo(other.Index);
+			}
+			throw new ArgumentException($"object {obj}[{obj.GetType()} is not comparable to User]");
+		}
+	}
 }

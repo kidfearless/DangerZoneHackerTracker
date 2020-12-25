@@ -62,7 +62,8 @@ namespace DangerZoneHackerTracker
 
 		protected override void OnStartup(StartupEventArgs e)
 		{
-			AppDomain.CurrentDomain.FirstChanceException += CurrentDomain_FirstChanceException;
+			//Debugger.Launch();
+			//AppDomain.CurrentDomain.FirstChanceException += CurrentDomain_FirstChanceException;
 			base.OnStartup(e);
 
 			users = new EventableSortedSet<User>(new UserComparer());
@@ -79,6 +80,12 @@ namespace DangerZoneHackerTracker
 			
 			ClientConnected.AddEvent(OnClientConnected);
 			ClientDisconnected.AddEvent(OnClientDisconnected);
+			MapChanged.AddEvent(OnMapChanged);
+		}
+
+		private void OnMapChanged(string oldValue, string newValue)
+		{
+			Users.Clear();
 		}
 
 		private void CurrentDomain_FirstChanceException(object sender, System.Runtime.ExceptionServices.FirstChanceExceptionEventArgs e)
@@ -86,13 +93,18 @@ namespace DangerZoneHackerTracker
 			Logger.Log(e.Exception);
 		}
 
+#pragma warning disable CS0168 // Variable is declared but never used
 		private void App_Activated(object sender, EventArgs e)
 		{
 
 			// wait until the first window is shown so that they can get the events when they are first fired.
 			try
 			{
-				Console = new RemoteConsole();
+				Console = new RemoteConsole()
+				{
+					ReceiveTimeout = 10000,
+					NoDelay = true
+				};
 				Console.LineRead += Console_LineRead;
 				this.Activated -= App_Activated;
 			}
@@ -105,6 +117,7 @@ namespace DangerZoneHackerTracker
 				wind.Show();
 			}
 		}
+#pragma warning restore CS0168 // Variable is declared but never used
 
 		private void App_LoadCompleted(object sender, System.Windows.Navigation.NavigationEventArgs e)
 		{
@@ -221,6 +234,13 @@ namespace DangerZoneHackerTracker
 				return;
 			}
 
+			if(line == "Not connected to server")
+			{
+				// remove the users from the list preemptively but not from the grid until we have a new set.
+				Users.Clear();
+				return;
+			}
+
 			if(line == "#end")
 			{
 				var disconnectedUsers = users.Except(TempUsers, new UserComparer()).ToArray();
@@ -264,6 +284,8 @@ namespace DangerZoneHackerTracker
 				}
 				return;
 			}
+
+
 		}
 
 

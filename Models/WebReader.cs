@@ -14,7 +14,7 @@ namespace DangerZoneHackerTracker
 		{
 			HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
 			using var response = await request.GetResponseAsync() as HttpWebResponse;
-
+			  
 			if (response.StatusCode != HttpStatusCode.OK)
 			{
 				return null;

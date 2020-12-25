@@ -5,6 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Windows.Media.Animation;
 
 namespace DangerZoneHackerTracker
 {
@@ -41,14 +42,15 @@ namespace DangerZoneHackerTracker
 			}
 			set
 			{
-				if(base[s] != value)
+				if(base.ContainsKey(s) && base[s] != value)
 				{
 					var newValue = value;
 					var oldValue = base[s];
 					SettingChanged?.Invoke(s, oldValue, newValue);
-					base[s] = value;
-					Save();
 				}
+
+				base[s] = value;
+				Save();
 			}
 		}
 
@@ -58,6 +60,9 @@ namespace DangerZoneHackerTracker
 		{
 		}
 
+		public Settings()
+		{
+		}
 
 		public static Settings Init()
 		{
@@ -72,15 +77,16 @@ namespace DangerZoneHackerTracker
 			reader.Dispose();
 
 			var dict = JsonConvert.DeserializeObject<Dictionary<string, string>>(jsonString);
-			_settings = new Settings(dict);
+			
+			_settings = dict is null? new Settings() : new Settings(dict);
 
 			_settings.AddIfMissing("UpdateRate", 15.0);
 			_settings.AddIfMissing("Volume", 1.0);
 
 			return _settings;
-		}
+		} 
 
-		private static string InitPath()
+		private static string InitPath() 
 		{
 			var basePath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
 			var appName = Path.GetFileNameWithoutExtension(AppDomain.CurrentDomain.FriendlyName);

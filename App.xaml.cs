@@ -18,6 +18,7 @@ using System.Windows.Input;
 using System.IO;
 using Microsoft.Data.Sqlite;
 using Microsoft.Win32;
+using AsyncFriendlyStackTrace;
 
 namespace DangerZoneHackerTracker
 {
@@ -63,7 +64,7 @@ namespace DangerZoneHackerTracker
 		protected override void OnStartup(StartupEventArgs e)
 		{
 			//Debugger.Launch();
-			//AppDomain.CurrentDomain.FirstChanceException += CurrentDomain_FirstChanceException;
+			AppDomain.CurrentDomain.FirstChanceException += CurrentDomain_FirstChanceException;
 			base.OnStartup(e);
 
 			users = new EventableSortedSet<User>(new UserComparer());
@@ -90,7 +91,7 @@ namespace DangerZoneHackerTracker
 
 		private void CurrentDomain_FirstChanceException(object sender, System.Runtime.ExceptionServices.FirstChanceExceptionEventArgs e)
 		{
-			Logger.Log(e.Exception);
+			Logger.Log(e.Exception.ToAsyncString());
 		}
 
 #pragma warning disable CS0168 // Variable is declared but never used
@@ -145,50 +146,53 @@ namespace DangerZoneHackerTracker
 
 			if (!Settings["HasImportedDB"])
 			{
-				using var connection = new SqliteConnection($"Data Source={DatabasePath}");
-				connection.Open();
-
-				#region Import Settings
-				using var settingsCommand = connection.CreateCommand();
-				settingsCommand.CommandText = "SELECT * FROM Settings";
-				using var reader2 = settingsCommand.ExecuteReader();
-				if (reader2.Read())
+				if(File.Exists(DatabasePath))
 				{
-					Settings["Volume"] = TryGetValue<double>(reader2, "Volume");
-					Settings["UpdateRate"] = Math.Max(TryGetValue<double>(reader2, "UpdateRate"), 0.1);
-					Settings["UserNameOverride"] = TryGetValue<string>(reader2, "UserNameOverride");
+					using var connection = new SqliteConnection($"Data Source={DatabasePath}");
+					connection.Open();
 
-				}
-
-				if (string.IsNullOrEmpty(Settings["UserNameOverride"]))
-				{
-					using var subkey = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Valve\Steam");
-					Settings["UserNameOverride"] = subkey.GetValue("LastGameNameUsed") as string;
-				} 
-				#endregion
-
-				#region Import Cheaters
-				using var cheaterCommand = connection.CreateCommand();
-				cheaterCommand.CommandText = "SELECT * FROM Cheaters";
-
-				using var reader = cheaterCommand.ExecuteReader();
-				while (reader.Read())
-				{
-					var steamid3 = $"[U:1:{TryGetValue<long>(reader, "AccountID")}]";
-					var steam = new SteamID();
-					steam.SetFromSteam3String(steamid3);
-					var cheater = new Cheater()
+					#region Import Settings
+					using var settingsCommand = connection.CreateCommand();
+					settingsCommand.CommandText = "SELECT * FROM Settings";
+					using var reader2 = settingsCommand.ExecuteReader();
+					if (reader2.Read())
 					{
-						CheatList = TryGetValue<string>(reader, "CheatList"),
-						AccountID = steam.ConvertToUInt64(),
-						LastKnownName = TryGetValue<string>(reader, "LastKnownName"),
-						Notes = TryGetValue<string>(reader, "Notes")??"",
-						Submitter = Settings["UserNameOverride"],
-						ThreatLevel = (int)TryGetValue<long>(reader, "ThreatLevel")
-					};
-					Cheaters.Add(cheater);
+						Settings["Volume"] = TryGetValue<double>(reader2, "Volume");
+						Settings["UpdateRate"] = Math.Max(TryGetValue<double>(reader2, "UpdateRate"), 0.1);
+						Settings["UserNameOverride"] = TryGetValue<string>(reader2, "UserNameOverride");
+
+					}
+
+					if (string.IsNullOrEmpty(Settings["UserNameOverride"]))
+					{
+						using var subkey = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Valve\Steam");
+						Settings["UserNameOverride"] = subkey.GetValue("LastGameNameUsed") as string;
+					} 
+					#endregion
+
+					#region Import Cheaters
+					using var cheaterCommand = connection.CreateCommand();
+					cheaterCommand.CommandText = "SELECT * FROM Cheaters";
+
+					using var reader = cheaterCommand.ExecuteReader();
+					while (reader.Read())
+					{
+						var steamid3 = $"[U:1:{TryGetValue<long>(reader, "AccountID")}]";
+						var steam = new SteamID();
+						steam.SetFromSteam3String(steamid3);
+						var cheater = new Cheater()
+						{
+							CheatList = TryGetValue<string>(reader, "CheatList"),
+							AccountID = steam.ConvertToUInt64(),
+							LastKnownName = TryGetValue<string>(reader, "LastKnownName"),
+							Notes = TryGetValue<string>(reader, "Notes")??"",
+							Submitter = Settings["UserNameOverride"],
+							ThreatLevel = (int)TryGetValue<long>(reader, "ThreatLevel")
+						};
+						Cheaters.Add(cheater);
+					}
+					#endregion
 				}
-				#endregion
 				Settings["HasImportedDB"] = true;
 			}
 		}

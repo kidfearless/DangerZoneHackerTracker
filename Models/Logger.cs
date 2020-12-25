@@ -19,7 +19,7 @@ namespace DangerZoneHackerTracker
 		static void Init()
 		{
 
-			var basePath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+			var basePath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
 			var appName = Path.GetFileNameWithoutExtension(AppDomain.CurrentDomain.FriendlyName);
 			FolderPath = Path.Combine(basePath, appName);
 			if (!Directory.Exists(FolderPath))

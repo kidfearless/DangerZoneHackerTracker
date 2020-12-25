@@ -10,6 +10,8 @@
 		<Authors>KiD Fearless</Authors>
 		<Product>DangerZoneHackerTracker</Product>
 		<Platforms>AnyCPU;x64;x86</Platforms>
+		<SignAssembly>true</SignAssembly>
+		<AssemblyOriginatorKeyFile>DangerZoneHackerTrackerKiDFearLess.pfx</AssemblyOriginatorKeyFile>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

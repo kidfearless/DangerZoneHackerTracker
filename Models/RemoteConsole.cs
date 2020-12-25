@@ -16,21 +16,21 @@ namespace DangerZoneHackerTracker
 	public class RemoteConsole : TcpClient
 	{
 		NetworkStream Stream;
+		StreamReader Reader;
 		SystemTimer Timer;
 		Settings Settings = Settings.Init();
-		StreamReader Reader;
 		public delegate void LineReadCallback(string line);
 		public event LineReadCallback LineRead;
 		public RemoteConsole(string server = "127.0.0.1", int port = 2121) : base(server, port)
 		{
 			this.Stream = base.GetStream();
+			Reader = new StreamReader(Stream);
 
 			Timer = new SystemTimer(TimeSpan.FromSeconds(Settings["UpdateRate"]).TotalMilliseconds);
 			Timer.Elapsed += Timer_Elapsed;
 			Timer.Start();
 
 			Settings.SettingChanged += Settings_SettingChanged;
-			Reader = new StreamReader(Stream);
 			new Thread(StreamReaderThread).Start();
 		}
 
@@ -42,30 +42,35 @@ namespace DangerZoneHackerTracker
 			}
 		}
 
+#pragma warning disable CS0168 // Variable is declared but never used
 		private void Timer_Elapsed(object sender, ElapsedEventArgs e)
 		{
 			try
 			{
 				Execute("status");
 			}
-			catch (IOException)
+			catch (Exception exc)
 			{
 			}
 		}
+#pragma warning restore CS0168 // Variable is declared but never used
 
 		private void StreamReaderThread()
 		{
-			while(Reader is not null)
+			while (Stream != null)
 			{
 				try
 				{
-					foreach (var line in ReadLines())
+					var lines = ReadLines();
+					foreach (var line in lines)
 					{
+						System.Diagnostics.Debug.WriteLine(line);
 						LineRead?.Invoke(line);
 					}
 					Thread.Sleep(10);
 				}
-				// As far as i can tell there isn't a way to handle this without a try catch.
+				// As far as i can tell there isn't a way to handle the socket exception without a try catch.
+				// it might just be that valve fucked it up on their end.
 				catch (Exception)
 				{
 					return;
@@ -73,13 +78,38 @@ namespace DangerZoneHackerTracker
 			}
 		}
 
+		private string[] ReadAllLines()
+		{
+			List<string> list = new();
+			while (Stream != null && Stream.DataAvailable && Stream.CanRead)
+			{
+				var line = Reader.ReadLine();
+				if(line is not null)
+				{
+					list.Add(line);
+				}
+				else
+				{
+					break;
+				}
+			}
+
+			return list.ToArray();
+		}
+
 		private IEnumerable<string> ReadLines()
 		{
-			var line = Reader?.ReadLine();
-			while(line is not null)
+			while (Stream != null && Stream.DataAvailable && Stream.CanRead)
 			{
-				yield return line;
-				line = Reader?.ReadLine();
+				var line = Reader.ReadLine();
+				if (line is not null)
+				{
+					yield return line;
+				}
+				else
+				{
+					yield break;
+				}
 			}
 		}
 
@@ -92,7 +122,7 @@ namespace DangerZoneHackerTracker
 		public void Execute(string command)
 		{
 			var bytes = Encoding.Default.GetBytes(command + "\n");
-			Stream.Write(bytes);
+			Stream?.Write(bytes);
 		}
 
 		public new void Dispose()
@@ -100,6 +130,8 @@ namespace DangerZoneHackerTracker
 			base.Dispose();
 			Timer?.Dispose();
 			Timer = null;
+			Stream?.Dispose();
+			Stream = null;
 			Reader?.Dispose();
 			Reader = null;
 		}

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AsyncFriendlyStackTrace;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -56,15 +57,12 @@ namespace DangerZoneHackerTracker
 			{
 				Init();
 			}
-
-			StreamWriter.WriteLine(ex.ToString());
-			StreamWriter.WriteLine(ex.Message);
-			StreamWriter.WriteLine(ex.StackTrace);
+			var str = ex.ToAsyncString() + Environment.NewLine;
+			StreamWriter.Write(str);
 		}
 
 		public static void Dispose()
 		{
-			StreamWriter?.Flush();
 			FileStream?.Dispose();
 			StreamWriter?.Dispose();
 		}

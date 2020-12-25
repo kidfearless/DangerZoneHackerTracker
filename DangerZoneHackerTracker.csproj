@@ -47,14 +47,20 @@
 
 	<ItemGroup>
 	  <Compile Remove="Notifications.Wpf.Core\**" />
+	  <Compile Remove="Publish\**" />
 	  <EmbeddedResource Remove="Notifications.Wpf.Core\**" />
+	  <EmbeddedResource Remove="Publish\**" />
 	  <None Remove="Notifications.Wpf.Core\**" />
+	  <None Remove="Publish\**" />
 	  <Page Remove="Notifications.Wpf.Core\**" />
+	  <Page Remove="Publish\**" />
 	</ItemGroup>
 
 
 	<ItemGroup>
 	  <None Remove="app.manifest" />
+	  <None Remove="DangerZoneHackerTracker.exe - Shortcut.lnk" />
+	  <None Remove="DangerZoneHackerTrackerV2.zip" />
 	  <None Remove="Resources\DZ_ICON.png" />
 	  <None Remove="Resources\favicon.ico" />
 	  <None Remove="Resources\haaaaxedit.mp3" />
@@ -82,6 +88,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <PackageReference Include="AsyncFriendlyStackTrace" Version="1.6.0" />
 	  <PackageReference Include="Biaui" Version="1.0.23" />
 	  <PackageReference Include="Microsoft.Data.Sqlite" Version="5.0.1" />
 	  <PackageReference Include="NAudio" Version="1.10.0" />
@@ -90,10 +97,6 @@
 
 	<ItemGroup>
 	  <ProjectReference Include="Notifications.Wpf.Core\Notifications.Wpf.Core.csproj" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <Resource Include="Views\13614349.png" />
 	</ItemGroup>
 
 	<ItemGroup>

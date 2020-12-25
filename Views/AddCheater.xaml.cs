@@ -52,15 +52,13 @@ namespace DangerZoneHackerTracker
 				url = $"{SteamID.CommunityURLRegex.Match(TxtSteam.Text).Value}/?xml=1";
 			}
 
-			dynamic data = await Steam.GetProfileDataAsync(url);
-			ExpandoObject steamID = data.profile.steamID;
-			var name = steamID.First().Value as string;
+			var data = await Steam.GetProfileDataAsync(url);
 			int.TryParse(TxtThreat.Text, out int threat);
 			Cheater cheater = new()
 			{
-				AccountID = Convert.ToUInt64(data.profile.steamID64),
+				AccountID = Convert.ToUInt64(data.steamID64),
 				CheatList = TxtCheats.Text,
-				LastKnownName = name,
+				LastKnownName = data.steamID,
 				Submitter = Settings["UserNameOverride"],
 				ThreatLevel = threat,
 				Notes = TxtNotes.Text

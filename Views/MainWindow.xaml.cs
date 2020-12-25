@@ -22,10 +22,12 @@ using Microsoft.Win32;
 using Path = System.IO.Path;
 using Microsoft.Data.Sqlite;
 using Formatting = Newtonsoft.Json.Formatting;
+using Newtonsoft.Json.Linq;
+using System.Collections;
+using AsyncFriendlyStackTrace;
 
 namespace DangerZoneHackerTracker
 {
-	public class HackerButton : Button { }
 
 	/// <summary>
 	/// Interaction logic for MainWindow.xaml
@@ -77,6 +79,18 @@ namespace DangerZoneHackerTracker
 		private void OnMapChange(string oldValue, string newValue)
 		{
 			LblMap.Content = $"Map: {newValue.Replace("_", "__")}";
+
+
+			ConnectedUserGrid.Children.Clear();
+			ConnectedUserGrid.Children.Add(LblPicture);
+			ConnectedUserGrid.Children.Add(LblName);
+			ConnectedUserGrid.Children.Add(LblSteam);
+			ConnectedUserGrid.Children.Add(LblSubmitter);
+			ConnectedUserGrid.Children.Add(LblCheats);
+			ConnectedUserGrid.Children.Add(LblNotes);
+			ConnectedUserGrid.Children.Add(LblThreatLevel);
+			ConnectedUserGrid.Children.Add(LblButtonsAdd);
+			
 		}
 
 		private void OnHostChange(string oldValue, string newValue)
@@ -88,11 +102,12 @@ namespace DangerZoneHackerTracker
 		{
 			LblPlayerCount.Content = $"Players: {App.Current.Users.Count}";
 			Debug.WriteLine($"Disconnected user {user.Name}");
-			RemoveGrid(user);
+			RemoveGrid(user.Index);
 		}
-
+		 
 		private void OnClientConnected(User user)
 		{
+			RemoveGrid(user.Index);
 			LblPlayerCount.Content = $"Players: {App.Current.Users.Count}";
 			Debug.WriteLine($"Connected user {user.Name}");
 			AddGrid(user);
@@ -137,12 +152,12 @@ namespace DangerZoneHackerTracker
 			//throw new NotImplementedException();
 		}
 
-		private void RemoveGrid(User itemChanged)
+		private void RemoveGrid(int row)
 		{
 			List<UIElement> items = new();
 			foreach (UIElement item in ConnectedUserGrid.Children)
 			{
-				if(Grid.GetRow(item) == itemChanged.Index)
+				if(Grid.GetRow(item) == row)
 				{
 					items.Add(item);
 				}
@@ -165,7 +180,9 @@ namespace DangerZoneHackerTracker
             <Label Style="{StaticResource TableRowStyle}" x:Name="LblButtonsAdd" Grid.Column="7"></Label>*/
 			var labelStyle = this.FindResource("TableRowLabelStyle") as Style;
 
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 			GetProfilePictureAsync(user);
+#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 
 			#region Helper Methods
 			void AddToGrid(UIElement element, int column)
@@ -306,12 +323,17 @@ namespace DangerZoneHackerTracker
 
 		private async Task GetProfilePictureAsync(User user)
 		{
-			var url = $"http://steamcommunity.com/profiles/{user.SteamID.ConvertToUInt64()}/?xml=1";
-			user.ProfileData = await Steam.GetProfileDataAsync(url);
-			// can't reference the value directly since it's in #cdata-secition property
-			ExpandoObject avatar = user.ProfileData.profile.avatarFull;
-			var profilePicUrl = avatar.First().Value as string;
-
+			string profilePicUrl = Steam.DefaultProfilePicture;
+			try
+			{
+				var url = $"http://steamcommunity.com/profiles/{user.SteamID.ConvertToUInt64()}/?xml=1";
+				user.Profile = await Steam.GetProfileDataAsync(url);
+				profilePicUrl = user.Profile.avatarFull;
+			}
+			catch (Exception exc)
+			{
+				Debug.Fail(exc.ToAsyncString());
+			}
 
 			user.ProfilePicture = new Image()
 			{
@@ -359,6 +381,7 @@ namespace DangerZoneHackerTracker
 
 		}
 
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Wrong Usage", "DF0010:Marks undisposed local variables.", Justification = "It is disposed")]
 		private void Import_Clicked(object sender, RoutedEventArgs e)
 		{
 			T TryGetValue<T>(SqliteDataReader reader, string value)

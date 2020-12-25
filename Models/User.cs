@@ -36,10 +36,7 @@ namespace DangerZoneHackerTracker
 		public Cheater? Cheater { get; set; }
 		public bool IsCheater => Cheater != null;
 
-		/// <summary>
-		/// Expando object containing their profile data
-		/// </summary>
-		public dynamic ProfileData { get; set; }
+		public ProfileData.Profile Profile { get; set; }
 
 		public Image ProfilePicture { get; set; }
 

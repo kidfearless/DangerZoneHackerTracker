@@ -13,17 +13,25 @@ using SystemTimer = System.Timers.Timer;
 
 namespace DangerZoneHackerTracker
 {
-	public class RemoteConsole : TcpClient
+	public class RemoteConsole : IDisposable
 	{
+		TcpClient _base;
 		NetworkStream Stream;
 		StreamReader Reader;
 		SystemTimer Timer;
 		Settings Settings = Settings.Init();
 		public delegate void LineReadCallback(string line);
 		public event LineReadCallback LineRead;
-		public RemoteConsole(string server = "127.0.0.1", int port = 2121) : base(server, port)
+		private string _server;
+		private int _port;
+		private bool Resetting = false;
+
+		public RemoteConsole(string server = "127.0.0.1", int port = 2121)
 		{
-			this.Stream = base.GetStream();
+			_base = new TcpClient(server, port);
+			_server = server;
+			_port = port;
+			this.Stream = _base.GetStream();
 			Reader = new StreamReader(Stream);
 
 			Timer = new SystemTimer(TimeSpan.FromSeconds(Settings["UpdateRate"]).TotalMilliseconds);
@@ -45,6 +53,7 @@ namespace DangerZoneHackerTracker
 #pragma warning disable CS0168 // Variable is declared but never used
 		private void Timer_Elapsed(object sender, ElapsedEventArgs e)
 		{
+			ValidateConnection();
 			try
 			{
 				Execute("status");
@@ -57,8 +66,9 @@ namespace DangerZoneHackerTracker
 
 		private void StreamReaderThread()
 		{
-			while (Stream != null)
+			while (true)
 			{
+				ValidateConnection();
 				try
 				{
 					var lines = ReadLines();
@@ -113,6 +123,29 @@ namespace DangerZoneHackerTracker
 			}
 		}
 
+		private void ValidateConnection()
+		{
+			if (!Resetting && (Stream is null || !Stream.Socket.Connected))
+			{
+				this.Resetting = true;
+				try
+				{
+					Stream?.Dispose();
+					Stream = null;
+					Reader?.Dispose();
+					Reader = null;
+					_base.Dispose();
+					_base = new TcpClient(_server, _port);
+					this.Stream = _base.GetStream();
+					this.Reader = new StreamReader(this.Stream);
+				}
+				catch (Exception)
+				{
+
+				}
+				this.Resetting = false;
+			}
+		}
 
 
 		/// <summary>
@@ -125,9 +158,9 @@ namespace DangerZoneHackerTracker
 			Stream?.Write(bytes);
 		}
 
-		public new void Dispose()
+		public void Dispose()
 		{
-			base.Dispose();
+			_base.Dispose();
 			Timer?.Dispose();
 			Timer = null;
 			Stream?.Dispose();

@@ -91,7 +91,10 @@ namespace DangerZoneHackerTracker
 
 		private void CurrentDomain_FirstChanceException(object sender, System.Runtime.ExceptionServices.FirstChanceExceptionEventArgs e)
 		{
-			Logger.Log(e.Exception.ToAsyncString());
+			if(e.Exception is not IOException)
+			{
+				Logger.Log(e.Exception.ToString());
+			}
 		}
 
 #pragma warning disable CS0168 // Variable is declared but never used
@@ -101,11 +104,7 @@ namespace DangerZoneHackerTracker
 			// wait until the first window is shown so that they can get the events when they are first fired.
 			try
 			{
-				Console = new RemoteConsole()
-				{
-					ReceiveTimeout = 10000,
-					NoDelay = true
-				};
+				Console = new RemoteConsole();
 				Console.LineRead += Console_LineRead;
 				this.Activated -= App_Activated;
 			}

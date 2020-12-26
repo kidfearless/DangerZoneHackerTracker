@@ -6,7 +6,9 @@ using System.Dynamic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Shapes;
 
 namespace DangerZoneHackerTracker
 {
@@ -22,6 +24,9 @@ namespace DangerZoneHackerTracker
 
 	public class User : IComparable
 	{
+		public delegate void ProfileRetreivedCallback(User user, ProfileData.Profile profile);
+		public event ProfileRetreivedCallback ProfileRetreived;
+
 		public int Index { get; set; }
 
 		[DefaultValue("")]
@@ -47,6 +52,27 @@ namespace DangerZoneHackerTracker
 				return this.Index.CompareTo(other.Index);
 			}
 			throw new ArgumentException($"object {obj}[{obj.GetType()} is not comparable to User]");
+		}
+
+		public sealed class UIData
+		{
+			internal TextBox CheatList;
+			internal TextBox ThreatLevel;
+			internal TextBox Submitter;
+			internal TextBox Notes;
+			internal Label Name;
+			internal Label SteamID;
+			internal Rectangle BackgroundRect;
+			internal Button Button;
+		}
+
+		public UIData UIElements = new();
+
+		public async void GetProfileData()
+		{
+			var url = $"http://steamcommunity.com/profiles/{AccountID}/?xml=1";
+			this.Profile = await Steam.GetProfileDataAsync(url);
+			this.ProfileRetreived?.Invoke(this, this.Profile);
 		}
 	}
 }

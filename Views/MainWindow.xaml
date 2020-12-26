@@ -55,7 +55,7 @@
         </WrapPanel>
         <Grid Grid.Row="1">
             <ScrollViewer Margin="10,10,10,10">
-                <Grid Background="#FF232323" x:Name="ConnectedUserGrid" VerticalAlignment="Top">
+                <Grid Background="#FF232323" x:FieldModifier="public" x:Name="ConnectedUserGrid" VerticalAlignment="Top">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="Auto" />

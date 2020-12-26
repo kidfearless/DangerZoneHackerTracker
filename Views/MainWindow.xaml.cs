@@ -38,6 +38,8 @@ namespace DangerZoneHackerTracker
 		//public double ColumnWidth => GridView.Columns.Count / Math.Max(DataBindingObject.ActualWidth, 1);
 		Settings Settings = Settings.Init();
 		CheaterSet Cheaters = CheaterSet.Init();
+		private readonly Color HackerColor = Color.FromRgb(160, 0, 0);
+		private readonly Color BaseColor = Color.FromArgb(0, 0, 0, 0);
 		public MainWindow()
 		{
 			InitializeComponent();
@@ -180,9 +182,7 @@ namespace DangerZoneHackerTracker
             <Label Style="{StaticResource TableRowStyle}" x:Name="LblButtonsAdd" Grid.Column="7"></Label>*/
 			var labelStyle = this.FindResource("TableRowLabelStyle") as Style;
 
-#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-			GetProfilePictureAsync(user);
-#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+		
 
 			#region Helper Methods
 			void AddToGrid(UIElement element, int column)
@@ -199,33 +199,37 @@ namespace DangerZoneHackerTracker
 			};
 			#endregion
 
-			Label lName = new Label()
+			user.UIElements.Name = new Label()
 			{
 				Content = " " + user.Name.Replace("_", "__"),
 				Style = labelStyle
 			};
 
 			// single underscores have special meanings and have to be escaped
-			Label steamID = new Label()
+			user.UIElements.SteamID = new Label()
 			{
 				Content = user.SteamID.Render(false).Replace("_", "__"),
 				Style = labelStyle
 			};
 
-			var cheatList = TextBoxCreate(user.Cheater?.CheatList);
-			var threatLevel = TextBoxCreate(user.Cheater?.ThreatLevel.ToString());
-			var submitter = TextBoxCreate(user.Cheater?.Submitter);
-			var notes = TextBoxCreate(user.Cheater?.Notes);
+			user.UIElements.CheatList = TextBoxCreate(user.Cheater?.CheatList);
+			user.UIElements.ThreatLevel = TextBoxCreate(user.Cheater?.ThreatLevel.ToString());
+			user.UIElements.Submitter = TextBoxCreate(user.Cheater?.Submitter);
+			user.UIElements.Notes = TextBoxCreate(user.Cheater?.Notes);
 
 
 			// tell our controls which grid column they should use.
 
-			AddToGrid(lName, Grid.GetColumn(LblName));
-			AddToGrid(steamID, Grid.GetColumn(LblSteam));
-			AddToGrid(submitter, Grid.GetColumn(LblSubmitter));
-			AddToGrid(cheatList, Grid.GetColumn(LblCheats));
-			AddToGrid(notes, Grid.GetColumn(LblNotes));
-			AddToGrid(threatLevel, Grid.GetColumn(LblThreatLevel));
+			AddToGrid(user.UIElements.Name, Grid.GetColumn(LblName));
+			AddToGrid(user.UIElements.SteamID, Grid.GetColumn(LblSteam));
+			AddToGrid(user.UIElements.Submitter, Grid.GetColumn(LblSubmitter));
+			AddToGrid(user.UIElements.CheatList, Grid.GetColumn(LblCheats));
+			AddToGrid(user.UIElements.Notes, Grid.GetColumn(LblNotes));
+			AddToGrid(user.UIElements.ThreatLevel, Grid.GetColumn(LblThreatLevel));
+
+			// we want to get this information in the background, so we listen to the event for when it's ready.
+			user.ProfileRetreived += User_ProfileRetreived;
+			user.GetProfileData();
 
 			void HandleText(object sender, TextChangedEventArgs e)
 			{
@@ -234,33 +238,33 @@ namespace DangerZoneHackerTracker
 					return;
 				}
 
-				user.Cheater.CheatList = cheatList.Text;
-				int.TryParse(threatLevel.Text, out int threat2);
+				user.Cheater.CheatList = user.UIElements.CheatList.Text;
+				int.TryParse(user.UIElements.ThreatLevel.Text, out int threat2);
 				user.Cheater.ThreatLevel = threat2;
-				user.Cheater.Submitter = string.IsNullOrEmpty(submitter.Text) ? Settings["UserNameOverride"] : submitter.Text;
+				user.Cheater.Submitter = string.IsNullOrEmpty(user.UIElements.Submitter.Text) ? Settings["UserNameOverride"] : user.UIElements.Submitter.Text;
 				user.Cheater.LastKnownName = user.Name;
-				user.Cheater.Notes = notes.Text;
+				user.Cheater.Notes = user.UIElements.Notes.Text;
 				Cheaters.Save();
 			}
 			//notes.KeyDown += HandleText;
-			notes.TextChanged += HandleText;
-			threatLevel.TextChanged += HandleText;
-			cheatList.TextChanged += HandleText;
-			submitter.TextChanged += HandleText;
-
+			user.UIElements.Notes.TextChanged += HandleText;
+			user.UIElements.ThreatLevel.TextChanged += HandleText;
+			user.UIElements.CheatList.TextChanged += HandleText;
+			user.UIElements.Submitter.TextChanged += HandleText;
 
 			if (user.IsCheater)
 			{
-				var rect = new Rectangle()
+				var fill = ColorExtensions.Lerp(BaseColor, HackerColor, user.Cheater.ThreatLevel);
+				user.UIElements.BackgroundRect = new Rectangle()
 				{
-					Fill = new SolidColorBrush(Color.FromRgb(160, 0, 0))
+					Fill = new SolidColorBrush(fill)
 				};
-				
-				Panel.SetZIndex(rect, -1);
 
-				ConnectedUserGrid.Children.Add(rect);
-				Grid.SetColumnSpan(rect, ConnectedUserGrid.ColumnDefinitions.Count);
-				Grid.SetRow(rect, user.Index);
+				Panel.SetZIndex(user.UIElements.BackgroundRect, -1);
+
+				ConnectedUserGrid.Children.Add(user.UIElements.BackgroundRect);
+				Grid.SetColumnSpan(user.UIElements.BackgroundRect, ConnectedUserGrid.ColumnDefinitions.Count);
+				Grid.SetRow(user.UIElements.BackgroundRect, user.Index);
 
 
 				var removeButton = new Button()
@@ -285,59 +289,53 @@ namespace DangerZoneHackerTracker
 				};
 
 				AddToGrid(removeButton, Grid.GetColumn(LblThreatLevel) + 1);
-				
 			}
 			else
 			{
-				var addButton = new Button()
+				user.UIElements.Button = new Button()
 				{
 					Content = "Add",
 					Margin = new Thickness(5, 0, 10, 0)
 				};
 
 				// since we aren't tracking any of our objects outside of this function we create an anonymous function so we can reference the intended objects.
-				addButton.Click += (object sender, RoutedEventArgs e) =>
+				user.UIElements.Button.Click += (object sender, RoutedEventArgs e) =>
 				{
-					int.TryParse(threatLevel.Text, out int threat);
-					string sub = string.IsNullOrEmpty(submitter.Text) ? Settings["UserNameOverride"] : submitter.Text;
+					int.TryParse(user.UIElements.ThreatLevel.Text, out int threat);
+					string sub = string.IsNullOrEmpty(user.UIElements.Submitter.Text) ? Settings["UserNameOverride"] : user.UIElements.Submitter.Text;
 
 					user.Cheater = new Cheater()
 					{
 						LastKnownName = user.Name,
 						AccountID = user.AccountID,
-						CheatList = cheatList.Text,
+						CheatList = user.UIElements.CheatList.Text,
 						ThreatLevel = threat,
-						Notes = notes.Text,
+						Notes = user.UIElements.Notes.Text,
 						Submitter = sub
 					};
 
 					Cheaters.Add(user.Cheater);
-				
+
 					OnClientDisconnected(user);
 					OnClientConnected(user);
 				};
 
-				AddToGrid(addButton, Grid.GetColumn(LblThreatLevel) + 1);
+				AddToGrid(user.UIElements.Button, Grid.GetColumn(LblThreatLevel) + 1);
 			}
 		}
 
-		private async Task GetProfilePictureAsync(User user)
+		private void User_ProfileRetreived(User user, ProfileData.Profile profile)
 		{
-			string profilePicUrl = Steam.DefaultProfilePicture;
-			try
-			{
-				var url = $"http://steamcommunity.com/profiles/{user.SteamID.ConvertToUInt64()}/?xml=1";
-				user.Profile = await Steam.GetProfileDataAsync(url);
-				profilePicUrl = user.Profile.avatarFull;
-			}
-			catch (Exception exc)
-			{
-				Debug.Fail(exc.ToAsyncString());
-			}
+			GetProfilePicture(user);
+			
+		}
 
+		private void GetProfilePicture(User user)
+		{
+			var picture = user.Profile.avatarFull is null ? Steam.DefaultProfilePicture : user.Profile.avatarFull;
 			user.ProfilePicture = new Image()
 			{
-				Source = new BitmapImage(new(profilePicUrl, UriKind.Absolute)),
+				Source = new BitmapImage(new(picture, UriKind.Absolute)),
 				Style = this.FindResource("ProfileImageStyle") as Style
 			};
 			user.ProfilePicture.MouseDown += (object sender, MouseButtonEventArgs e) =>

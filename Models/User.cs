@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Shapes;
+using System.Windows.Media;
 
 namespace DangerZoneHackerTracker
 {
@@ -66,13 +67,28 @@ namespace DangerZoneHackerTracker
 			internal Button Button;
 		}
 
-		public UIData UIElements = new();
+		public UIData UI = new();
 
 		public async void GetProfileData()
 		{
 			var url = $"http://steamcommunity.com/profiles/{AccountID}/?xml=1";
-			this.Profile = await Steam.GetProfileDataAsync(url);
-			this.ProfileRetreived?.Invoke(this, this.Profile);
+			try
+			{
+				this.Profile = await Steam.GetProfileDataAsync(url);
+				this.ProfileRetreived?.Invoke(this, this.Profile);
+			}
+			catch
+			{
+				try
+				{
+					this.Profile = await Steam.GetProfileDataAsync(url);
+					this.ProfileRetreived?.Invoke(this, this.Profile);
+				}
+				catch
+				{
+
+				}
+			}
 		}
 	}
 }

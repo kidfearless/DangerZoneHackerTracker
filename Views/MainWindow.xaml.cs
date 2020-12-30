@@ -43,7 +43,7 @@ namespace DangerZoneHackerTracker
 		public MainWindow()
 		{
 			InitializeComponent();
-			for(int i = 0; i < 66; i++)
+			for (int i = 0; i < 66; i++)
 			{
 				this.ConnectedUserGrid.RowDefinitions.Add(new());
 			}
@@ -92,7 +92,7 @@ namespace DangerZoneHackerTracker
 			ConnectedUserGrid.Children.Add(LblNotes);
 			ConnectedUserGrid.Children.Add(LblThreatLevel);
 			ConnectedUserGrid.Children.Add(LblButtonsAdd);
-			
+
 		}
 
 		private void OnHostChange(string oldValue, string newValue)
@@ -106,7 +106,7 @@ namespace DangerZoneHackerTracker
 			Debug.WriteLine($"Disconnected user {user.Name}");
 			RemoveGrid(user.Index);
 		}
-		 
+
 		private void OnClientConnected(User user)
 		{
 			RemoveGrid(user.Index);
@@ -115,34 +115,34 @@ namespace DangerZoneHackerTracker
 			AddGrid(user);
 		}
 
-/*
-		private void Users_CollectionChanged(EventableSortedSet<User> sender, CollectionChangedAction action, User? itemChanged)
-		{
-			LblPlayerCount.Content = $"Players: {sender.Count}";
+		/*
+				private void Users_CollectionChanged(EventableSortedSet<User> sender, CollectionChangedAction action, User? itemChanged)
+				{
+					LblPlayerCount.Content = $"Players: {sender.Count}";
 
-			switch (action)
-			{
-				case CollectionChangedAction.Add:
-					
-					break;
-				case CollectionChangedAction.Remove:
-					
-					break;
-				case CollectionChangedAction.Modified:
-					Debug.WriteLine($"Modified user {itemChanged.Name}");
+					switch (action)
+					{
+						case CollectionChangedAction.Add:
 
-					ModifyGrid(itemChanged);
-					break;
-				case CollectionChangedAction.Multiple:
-					Debug.WriteLine($"List Modified {itemChanged.Name}");
+							break;
+						case CollectionChangedAction.Remove:
 
-					RebuildGrid();
-					break;
-				default:
-					break;
-			}
-		}
-*/
+							break;
+						case CollectionChangedAction.Modified:
+							Debug.WriteLine($"Modified user {itemChanged.Name}");
+
+							ModifyGrid(itemChanged);
+							break;
+						case CollectionChangedAction.Multiple:
+							Debug.WriteLine($"List Modified {itemChanged.Name}");
+
+							RebuildGrid();
+							break;
+						default:
+							break;
+					}
+				}
+		*/
 
 		private void RebuildGrid()
 		{
@@ -159,7 +159,7 @@ namespace DangerZoneHackerTracker
 			List<UIElement> items = new();
 			foreach (UIElement item in ConnectedUserGrid.Children)
 			{
-				if(Grid.GetRow(item) == row)
+				if (Grid.GetRow(item) == row)
 				{
 					items.Add(item);
 				}
@@ -182,7 +182,7 @@ namespace DangerZoneHackerTracker
             <Label Style="{StaticResource TableRowStyle}" x:Name="LblButtonsAdd" Grid.Column="7"></Label>*/
 			var labelStyle = this.FindResource("TableRowLabelStyle") as Style;
 
-		
+
 
 			#region Helper Methods
 			void AddToGrid(UIElement element, int column)
@@ -195,37 +195,37 @@ namespace DangerZoneHackerTracker
 			TextBox TextBoxCreate(string value) => new()
 			{
 				Text = value,
-				Margin = new Thickness(5,0,5,0),
+				Margin = new Thickness(5, 0, 5, 0),
 			};
 			#endregion
 
-			user.UIElements.Name = new Label()
+			user.UI.Name = new Label()
 			{
 				Content = " " + user.Name.Replace("_", "__"),
 				Style = labelStyle
 			};
 
 			// single underscores have special meanings and have to be escaped
-			user.UIElements.SteamID = new Label()
+			user.UI.SteamID = new Label()
 			{
 				Content = user.SteamID.Render(false).Replace("_", "__"),
 				Style = labelStyle
 			};
 
-			user.UIElements.CheatList = TextBoxCreate(user.Cheater?.CheatList);
-			user.UIElements.ThreatLevel = TextBoxCreate(user.Cheater?.ThreatLevel.ToString());
-			user.UIElements.Submitter = TextBoxCreate(user.Cheater?.Submitter);
-			user.UIElements.Notes = TextBoxCreate(user.Cheater?.Notes);
+			user.UI.CheatList = TextBoxCreate(user.Cheater?.CheatList);
+			user.UI.ThreatLevel = TextBoxCreate(user.Cheater?.ThreatLevel.ToString());
+			user.UI.Submitter = TextBoxCreate(user.Cheater?.Submitter);
+			user.UI.Notes = TextBoxCreate(user.Cheater?.Notes);
 
 
 			// tell our controls which grid column they should use.
 
-			AddToGrid(user.UIElements.Name, Grid.GetColumn(LblName));
-			AddToGrid(user.UIElements.SteamID, Grid.GetColumn(LblSteam));
-			AddToGrid(user.UIElements.Submitter, Grid.GetColumn(LblSubmitter));
-			AddToGrid(user.UIElements.CheatList, Grid.GetColumn(LblCheats));
-			AddToGrid(user.UIElements.Notes, Grid.GetColumn(LblNotes));
-			AddToGrid(user.UIElements.ThreatLevel, Grid.GetColumn(LblThreatLevel));
+			AddToGrid(user.UI.Name, Grid.GetColumn(LblName));
+			AddToGrid(user.UI.SteamID, Grid.GetColumn(LblSteam));
+			AddToGrid(user.UI.Submitter, Grid.GetColumn(LblSubmitter));
+			AddToGrid(user.UI.CheatList, Grid.GetColumn(LblCheats));
+			AddToGrid(user.UI.Notes, Grid.GetColumn(LblNotes));
+			AddToGrid(user.UI.ThreatLevel, Grid.GetColumn(LblThreatLevel));
 
 			// we want to get this information in the background, so we listen to the event for when it's ready.
 			user.ProfileRetreived += User_ProfileRetreived;
@@ -233,40 +233,27 @@ namespace DangerZoneHackerTracker
 
 			void HandleText(object sender, TextChangedEventArgs e)
 			{
-				if(!user.IsCheater)
+				if (!user.IsCheater)
 				{
 					return;
 				}
 
-				user.Cheater.CheatList = user.UIElements.CheatList.Text;
-				int.TryParse(user.UIElements.ThreatLevel.Text, out int threat2);
+				user.Cheater.CheatList = user.UI.CheatList.Text;
+				int.TryParse(user.UI.ThreatLevel.Text, out int threat2);
 				user.Cheater.ThreatLevel = threat2;
-				user.Cheater.Submitter = string.IsNullOrEmpty(user.UIElements.Submitter.Text) ? Settings["UserNameOverride"] : user.UIElements.Submitter.Text;
+				user.Cheater.Submitter = string.IsNullOrEmpty(user.UI.Submitter.Text) ? Settings["UserNameOverride"] : user.UI.Submitter.Text;
 				user.Cheater.LastKnownName = user.Name;
-				user.Cheater.Notes = user.UIElements.Notes.Text;
+				user.Cheater.Notes = user.UI.Notes.Text;
 				Cheaters.Save();
 			}
 			//notes.KeyDown += HandleText;
-			user.UIElements.Notes.TextChanged += HandleText;
-			user.UIElements.ThreatLevel.TextChanged += HandleText;
-			user.UIElements.CheatList.TextChanged += HandleText;
-			user.UIElements.Submitter.TextChanged += HandleText;
+			user.UI.Notes.TextChanged += HandleText;
+			user.UI.ThreatLevel.TextChanged += HandleText;
+			user.UI.CheatList.TextChanged += HandleText;
+			user.UI.Submitter.TextChanged += HandleText;
 
 			if (user.IsCheater)
 			{
-				var fill = ColorExtensions.Lerp(BaseColor, HackerColor, user.Cheater.ThreatLevel);
-				user.UIElements.BackgroundRect = new Rectangle()
-				{
-					Fill = new SolidColorBrush(fill)
-				};
-
-				Panel.SetZIndex(user.UIElements.BackgroundRect, -1);
-
-				ConnectedUserGrid.Children.Add(user.UIElements.BackgroundRect);
-				Grid.SetColumnSpan(user.UIElements.BackgroundRect, ConnectedUserGrid.ColumnDefinitions.Count);
-				Grid.SetRow(user.UIElements.BackgroundRect, user.Index);
-
-
 				var removeButton = new Button()
 				{
 					Content = "Remove",
@@ -292,25 +279,25 @@ namespace DangerZoneHackerTracker
 			}
 			else
 			{
-				user.UIElements.Button = new Button()
+				user.UI.Button = new Button()
 				{
 					Content = "Add",
 					Margin = new Thickness(5, 0, 10, 0)
 				};
 
 				// since we aren't tracking any of our objects outside of this function we create an anonymous function so we can reference the intended objects.
-				user.UIElements.Button.Click += (object sender, RoutedEventArgs e) =>
+				user.UI.Button.Click += (object sender, RoutedEventArgs e) =>
 				{
-					int.TryParse(user.UIElements.ThreatLevel.Text, out int threat);
-					string sub = string.IsNullOrEmpty(user.UIElements.Submitter.Text) ? Settings["UserNameOverride"] : user.UIElements.Submitter.Text;
+					int.TryParse(user.UI.ThreatLevel.Text, out int threat);
+					string sub = string.IsNullOrEmpty(user.UI.Submitter.Text) ? Settings["UserNameOverride"] : user.UI.Submitter.Text;
 
 					user.Cheater = new Cheater()
 					{
 						LastKnownName = user.Name,
 						AccountID = user.AccountID,
-						CheatList = user.UIElements.CheatList.Text,
+						CheatList = user.UI.CheatList.Text,
 						ThreatLevel = threat,
-						Notes = user.UIElements.Notes.Text,
+						Notes = user.UI.Notes.Text,
 						Submitter = sub
 					};
 
@@ -320,14 +307,24 @@ namespace DangerZoneHackerTracker
 					OnClientConnected(user);
 				};
 
-				AddToGrid(user.UIElements.Button, Grid.GetColumn(LblThreatLevel) + 1);
+				AddToGrid(user.UI.Button, Grid.GetColumn(LblThreatLevel) + 1);
 			}
 		}
 
 		private void User_ProfileRetreived(User user, ProfileData.Profile profile)
 		{
 			GetProfilePicture(user);
-			
+			var fill = GetBackgroundColor(user);
+			user.UI.BackgroundRect = new Rectangle()
+			{
+				Fill = new SolidColorBrush(fill)
+			};
+
+			Panel.SetZIndex(user.UI.BackgroundRect, -1);
+
+			ConnectedUserGrid.Children.Add(user.UI.BackgroundRect);
+			Grid.SetColumnSpan(user.UI.BackgroundRect, ConnectedUserGrid.ColumnDefinitions.Count);
+			Grid.SetRow(user.UI.BackgroundRect, user.Index);
 		}
 
 		private void GetProfilePicture(User user)
@@ -376,7 +373,6 @@ namespace DangerZoneHackerTracker
 		private void SingleAdd_Clicked(object sender, RoutedEventArgs e)
 		{
 			new AddCheater().ShowDialog();
-
 		}
 
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Wrong Usage", "DF0010:Marks undisposed local variables.", Justification = "It is disposed")]
@@ -482,6 +478,86 @@ namespace DangerZoneHackerTracker
 		private void Settings_Clicked(object sender, RoutedEventArgs e)
 		{
 			new SettingsWindow().ShowDialog();
+		}
+
+		Color GetBackgroundColor(User user)
+		{
+			if (user.IsCheater)
+			{
+				return user.Cheater.ThreatLevel switch
+				{
+					-1 => Color.FromArgb(100, 255, 0, 0),
+					0  => Color.FromArgb(100, 255, 255, 0),
+					1  => Color.FromArgb(100, 255, 225, 0),
+					2  => Color.FromArgb(100, 255, 200, 0),
+					3  => Color.FromArgb(100, 255, 175, 0),
+					4  => Color.FromArgb(100, 255, 150, 0),
+					5  => Color.FromArgb(100, 255, 125, 0),
+					6  => Color.FromArgb(100, 255, 100, 0),
+					7  => Color.FromArgb(100, 255, 75, 0),
+					8  => Color.FromArgb(100, 255, 50, 0),
+					9  => Color.FromArgb(100, 255, 25, 0),
+					10 => Color.FromArgb(100, 255, 0, 0),
+					_  => Color.FromArgb(100, 255, 0, 0),
+				};
+			}
+			else
+			{
+				int threatLevel = 0;
+				if (user.Profile is not null)
+				{
+					if (user.Profile.privacyState != "private")
+					{
+						if (user.Profile.memberSince is not null)
+						{
+							if (!DateTime.TryParse(user.Profile.memberSince, out DateTime memberSince))
+							{
+								Debug.Fail("Bad Date Yo");
+							}
+							var difference = DateTime.Now - memberSince;
+
+							var memberThreat = 5 - (difference.TotalDays / 365);
+							threatLevel += (int)Math.Clamp(memberThreat, 0, 10);
+						}
+						else
+						{
+							threatLevel += 2;
+						}
+
+						if (user.Profile.mostPlayedGames is not null && user.Profile.mostPlayedGames.mostPlayedGame  is not null)
+						{
+							var game = user.Profile.mostPlayedGames.MostPlayedGames.FirstOrDefault(t => t.gameName == "Counter-Strike: Global Offensive");
+							if (game is not null)
+							{
+								var timeThreat = 10 - (Convert.ToDouble(game.hoursPlayed) / 100);
+								threatLevel += (int)Math.Clamp(timeThreat, 0, 10);
+							}
+						}
+						else
+						{
+							//threatLevel += 2;
+						}
+					}
+					else
+					{
+						threatLevel = -1;
+					}
+
+				}
+				return threatLevel switch
+				{
+					2 => Color.FromArgb(25, 100, 100, 50),
+					3 => Color.FromArgb(25, 100, 100, 75),
+					4 => Color.FromArgb(25, 100, 100, 125),
+					5 => Color.FromArgb(25, 100, 100, 150),
+					6 => Color.FromArgb(25, 100, 100, 100),
+					7 => Color.FromArgb(25, 100, 100, 175),
+					8 => Color.FromArgb(25, 100, 100, 200),
+					9 => Color.FromArgb(25, 100, 100, 225),
+					10 => Color.FromArgb(25, 0, 100, 255),
+					_ => Color.FromArgb(0, 0, 0, 0),
+				};
+			}
 		}
 	}
 }

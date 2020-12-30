@@ -13,6 +13,7 @@ using System.Xml;
 
 namespace DangerZoneHackerTracker
 {
+
 	class Steam
 	{
 		public const string DefaultProfilePicture = "https://cdn.cloudflare.steamstatic.com/steamcommunity/public/images/avatars/fe/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb_full.jpg";
@@ -41,14 +42,21 @@ namespace DangerZoneHackerTracker
 		public static ProfileData.Profile GetProfileData(string url)
 		{
 			var xmlText = WebReader.ReadToEnd(url);
-
+			// TODO: Add proper null checking instead
+			if(xmlText.StartsWith("<!DOCTYPE html>"))
+			{
+				return new();
+			}
 			// Parse xml into object
 			XmlDocument doc = new XmlDocument();
 			doc.LoadXml(xmlText);
 
 			// parse xml object as json text
 			string json = JsonConvert.SerializeXmlNode(doc);
+
 			var temp = JsonConvert.DeserializeObject<ProfileData.Root>(json);
+
+
 
 			return temp.profile;
 		}

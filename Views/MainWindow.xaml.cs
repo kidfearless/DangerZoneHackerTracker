@@ -78,6 +78,15 @@ namespace DangerZoneHackerTracker
 
 		}
 
+		protected override void OnClosed(EventArgs e)
+		{
+			base.OnClosed(e);
+			// Console threads prevent the application from fully shutting down, so we gotta force it.
+			Application.Current.Shutdown();
+			Environment.Exit(0);
+		}
+
+
 		private void OnMapChange(string oldValue, string newValue)
 		{
 			LblMap.Content = $"Map: {newValue.Replace("_", "__")}";

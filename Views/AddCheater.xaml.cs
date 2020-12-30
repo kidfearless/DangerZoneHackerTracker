@@ -33,16 +33,20 @@ namespace DangerZoneHackerTracker
 		public AddCheater()
 		{
 			InitializeComponent();
+			TxtSubmitter.Text = Settings["UserNameOverride"];
 		}
 
 		private async void Button_Click(object sender, RoutedEventArgs e)
 		{
-			SteamID steam = new();
+			var steam = new SteamID();
 			string url;
 			if (!SteamID.CommunityURLRegex.IsMatch(TxtSteam.Text))
 			{
 				if (!steam.SetFromString(TxtSteam.Text) && !steam.SetFromSteam3String(TxtSteam.Text))
 				{
+					ToastManager.ShowToastAsync("Could not add cheater",
+						$"Steam ID '{TxtSteam.Text}' is not valid.",
+						Notifications.Wpf.Core.NotificationType.Warning);
 					return;
 				}
 				url = $"https://steamcommunity.com/profiles/{steam.ConvertToUInt64()}/?xml=1";
@@ -59,12 +63,15 @@ namespace DangerZoneHackerTracker
 				AccountID = Convert.ToUInt64(data.steamID64),
 				CheatList = TxtCheats.Text,
 				LastKnownName = data.steamID,
-				Submitter = Settings["UserNameOverride"],
+				Submitter = TxtSubmitter.Text,
 				ThreatLevel = threat,
 				Notes = TxtNotes.Text
 			};
 
 			Cheaters.Add(cheater);
+			ToastManager.ShowToastAsync("Successfully added cheater",
+						$"Hacker '{data.steamID}' has been added to the list.",
+						Notifications.Wpf.Core.NotificationType.Success);
 		}
 
 		private void TxtSteam_GotFocus(object sender, RoutedEventArgs e)
@@ -80,38 +87,6 @@ namespace DangerZoneHackerTracker
 			if (TxtSteam.Text == "")
 			{
 				TxtSteam.Text = "https://steamcommunity.com/id/kidfearless/";
-			}
-		}
-
-		private void TxtCheats_GotFocus(object sender, RoutedEventArgs e)
-		{
-			if (TxtCheats.Text == "Aimbot, Wallhacks, etc.")
-			{
-				TxtCheats.Text = "";
-			}
-		}
-
-		private void TxtCheats_LostFocus(object sender, RoutedEventArgs e)
-		{
-			if (TxtCheats.Text == "")
-			{
-				TxtCheats.Text = "Aimbot, Wallhacks, etc.";
-			}
-		}
-
-		private void TxtNotes_GotFocus(object sender, RoutedEventArgs e)
-		{
-			if (TxtNotes.Text == "Spawns radio, orders deagle, hides in tunnels")
-			{
-				TxtNotes.Text = "";
-			}
-		}
-
-		private void TxtNotes_LostFocus(object sender, RoutedEventArgs e)
-		{
-			if (TxtNotes.Text == "")
-			{
-				TxtNotes.Text = "Spawns radio, orders deagle, hides in tunnels";
 			}
 		}
 

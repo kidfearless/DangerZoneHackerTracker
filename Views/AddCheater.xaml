@@ -12,41 +12,45 @@
 		Height="280" Width="520"
 		Style="{StaticResource BiaWindowSpaceSavingStyle}">
 
-	<Grid>
-		<Grid.ColumnDefinitions>
-			<ColumnDefinition />
-			<ColumnDefinition />
-		</Grid.ColumnDefinitions>
-		<Grid.RowDefinitions>
-			<RowDefinition Height="*"/>
-			<RowDefinition Height="*"/>
-			<RowDefinition Height="*"/>
-		</Grid.RowDefinitions>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition />
+            <ColumnDefinition />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
 
-		<Label Margin="10,5,10,0" Content="Steam ID" Height="70" Grid.RowSpan="2" VerticalAlignment="Top" />
-		<TextBox x:Name="TxtSteam"
+        <Label Margin="10,5,10,0" Content="Steam ID" Height="70" Grid.RowSpan="2" VerticalAlignment="Top" />
+        <TextBox x:Name="TxtSteam"
 				 TextWrapping="Wrap" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Height="Auto" VerticalContentAlignment="Top" AcceptsReturn="True"
 				 GotFocus="TxtSteam_GotFocus" LostFocus="TxtSteam_LostFocus" 
 				 Text="https://steamcommunity.com/id/kidfearless/" Margin="10,23,10,0"/>
 
-		<Label Margin="10,5,10,0" Grid.Column="1" Content="Threat Level" Height="70" Grid.RowSpan="2" VerticalAlignment="Top" />
-		<TextBox x:Name="TxtThreat"
+        <Label Margin="10,5,10,0" Grid.Column="1" Content="Threat Level" Height="70" Grid.RowSpan="2" VerticalAlignment="Top" />
+        <TextBox x:Name="TxtThreat"
 				 TextWrapping="Wrap" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Height="Auto" VerticalContentAlignment="Top" AcceptsReturn="True"
 				 GotFocus="TxtThreat_GotFocus" LostFocus="TxtThreat_LostFocus"
 				 Text="1-10" Grid.Column="1" Margin="10,23,10,0"/>
 
-		<Label Margin="10,5,10,0" Content="Notes" Grid.Row="1" Height="46" VerticalAlignment="Top"/>
-		<TextBox x:Name="TxtNotes"
+        <Label Margin="10,5,10,0" Content="Notes" Grid.Row="1" Grid.Column="1" Height="46" VerticalAlignment="Top"/>
+        <TextBox x:Name="TxtNotes"
 				 TextWrapping="Wrap" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Height="Auto" VerticalContentAlignment="Top" AcceptsReturn="True"
-				 GotFocus="TxtNotes_GotFocus" LostFocus="TxtNotes_LostFocus"
-				 Text="Spawns radio, orders deagle, hides in tunnels" Margin="10,23,10,0" Grid.Row="1"/>
+				 Text="" Margin="10,23,10,0" Grid.Row="1" Grid.Column="1"/>
 
-		<Label Margin="10,5,10,0" Content="Cheat List" Grid.Column="1" Grid.Row="1" Height="46" VerticalAlignment="Top"/>
-		<TextBox x:Name="TxtCheats"
+        <Label Margin="10,5,10,0" Content="Cheat List" Grid.Column="0" Grid.Row="1" Height="46" VerticalAlignment="Top"/>
+        <TextBox x:Name="TxtCheats"
 				 TextWrapping="Wrap" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Height="Auto" VerticalContentAlignment="Top" AcceptsReturn="True"
-				 GotFocus="TxtCheats_GotFocus" LostFocus="TxtCheats_LostFocus"
-				 Text="Aimbot, Wallhacks, etc." Grid.Column="1" Margin="10,23,10,0" Grid.Row="1"/>
-		
-		<Button IsTabStop="True" Content="Add Cheater" IsDefault="True" x:Name="BtnAdd" Grid.Row="2" Click="Button_Click" Grid.ColumnSpan="2" MinHeight="24" Margin="10,10,10,10" Height="Auto" />
-	</Grid>
+				 Text="" Grid.Column="0" Margin="10,23,10,0" Grid.Row="1"/>
+
+        <Label Margin="10,5,10,0" Content="Submitter" Grid.Column="0" Grid.Row="2" Height="46" VerticalAlignment="Top"/>
+        <TextBox x:Name="TxtSubmitter"
+				 TextWrapping="Wrap" Height="Auto" VerticalContentAlignment="Top"
+				 Margin="10,23,10,10" Grid.Row="2" Grid.ColumnSpan="2"/>
+
+        <Button IsTabStop="True" Content="Add Cheater" IsDefault="True" x:Name="BtnAdd" Grid.Row="3" Click="Button_Click" Grid.ColumnSpan="2" MinHeight="24" Margin="10,10,10,10" Height="Auto" />
+    </Grid>
 </controls:BiaWindow>

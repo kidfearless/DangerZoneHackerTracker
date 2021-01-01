@@ -52,11 +52,16 @@ namespace DangerZoneHackerTracker
 			foreach (var ev in Events.Values.ToArray())
 			{
 				Dispatcher dispatcher = Dispatcher.FromThread(ev.Thread);
-				dispatcher.Invoke(() =>
+				try
 				{
-					dynamic t = ev.Delegate;
-					t.DynamicInvoke(args);
-				});
+
+					dispatcher.Invoke(() =>
+					{
+						dynamic t = ev.Delegate;
+						t.DynamicInvoke(args);
+					});
+				}
+				catch { }
 			}
 		}
 	}

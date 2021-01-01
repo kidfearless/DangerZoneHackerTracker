@@ -28,6 +28,15 @@ namespace DangerZoneHackerTracker.ProfileData
 		public override string ToString() => CdataSection;
 	}
 
+	public class PrivacyMessage
+	{
+		[JsonProperty("#text")]
+		public string[] Text { get; set; }
+		public static implicit operator string(PrivacyMessage obj) => string.Join('\n', obj?.Text ?? new string[] { "" });
+
+		public override string ToString() => this;
+	}
+
 	public class InGameInfo
 	{
 		public CDataString gameName { get; set; }
@@ -44,8 +53,8 @@ namespace DangerZoneHackerTracker.ProfileData
 		public IEnumerable<MostPlayedGame> MostPlayedGames
 		{
 			get
-			{ 
-				if(mostPlayedGame is JArray arr)
+			{
+				if (mostPlayedGame is JArray arr)
 				{
 					var array = arr.ToObject<List<MostPlayedGame>>();
 					foreach (MostPlayedGame item in array)
@@ -53,7 +62,7 @@ namespace DangerZoneHackerTracker.ProfileData
 						yield return item;
 					}
 				}
-				else if(mostPlayedGame is JObject obj)
+				else if (mostPlayedGame is JObject obj)
 				{
 					yield return obj.ToObject<MostPlayedGame>();
 				}
@@ -127,9 +136,23 @@ namespace DangerZoneHackerTracker.ProfileData
 		public CDataString location { get; set; }
 		public CDataString realname { get; set; }
 		public CDataString summary { get; set; }
+		public PrivacyMessage privacyMessage { get; set; }
 
 		public MostPlayedGamesContainer mostPlayedGames { get; set; }
 		//public Groups groups { get; set; }
+	}
+
+	public static class ProfileExtensions
+	{
+		public static MostPlayedGame GetCSGO([System.Diagnostics.CodeAnalysis.AllowNull] this Profile profile)
+		{
+			if (profile is null || profile.mostPlayedGames is null)
+			{
+				return null;
+			}
+
+			return profile.mostPlayedGames.MostPlayedGames.FirstOrDefault(t => t.gameName == "Counter-Strike: Global Offensive");
+		}
 	}
 
 	public class Root

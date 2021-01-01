@@ -91,10 +91,10 @@ namespace DangerZoneHackerTracker
 
 		private void CurrentDomain_FirstChanceException(object sender, System.Runtime.ExceptionServices.FirstChanceExceptionEventArgs e)
 		{
-			if(e.Exception is not IOException)
-			{
-				Logger.Log(e.Exception.ToString());
-			}
+			//if(e.Exception is not IOException)
+			//{
+			//	Logger.Log(e.Exception.ToString());
+			//}
 		}
 
 #pragma warning disable CS0168 // Variable is declared but never used
@@ -219,7 +219,10 @@ namespace DangerZoneHackerTracker
 							 $"Previous Name: {user.Cheater.LastKnownName}",
 						duration: TimeSpan.FromSeconds(10.0));
 				user.Cheater.LastKnownName = user.Name;
-				SoundManager.PlayEmbeddedSound("haaaaxedit.mp3", Settings["Volume"]);
+				if(user.Cheater.ThreatLevel > 3)
+				{
+					SoundManager.PlayEmbeddedSound("haaaaxedit.mp3", Settings["Volume"]);
+				}
 				Cheaters.Save();
 			}
 		}

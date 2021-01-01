@@ -19,7 +19,7 @@ namespace DangerZoneHackerTracker
 		public const string DefaultProfilePicture = "https://cdn.cloudflare.steamstatic.com/steamcommunity/public/images/avatars/fe/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb_full.jpg";
 		public static async Task<ProfileData.Profile> GetProfileDataAsync(string url)
 		{
-			if(url == "http://steamcommunity.com/profiles/76561198798849865/?xml=1")
+			if(url == "http://steamcommunity.com/profiles/76561199122211574/?xml=1")
 			{
 				System.Diagnostics.Debug.Write("");
 			}
@@ -45,7 +45,7 @@ namespace DangerZoneHackerTracker
 			// TODO: Add proper null checking instead
 			if(xmlText.StartsWith("<!DOCTYPE html>"))
 			{
-				return new();
+				return null;
 			}
 			// Parse xml into object
 			XmlDocument doc = new XmlDocument();

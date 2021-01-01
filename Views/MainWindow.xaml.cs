@@ -1,30 +1,21 @@
-﻿using Newtonsoft.Json;
+﻿using DangerZoneHackerTracker.Views;
+using Microsoft.Data.Sqlite;
+using Microsoft.Win32;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Net;
-using System.Text;
-using System.Threading.Tasks;
+using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
-using System.Xml;
-using System.Dynamic;
-using Biaui.Controls;
-using Microsoft.Win32;
-using Path = System.IO.Path;
-using Microsoft.Data.Sqlite;
 using Formatting = Newtonsoft.Json.Formatting;
-using Newtonsoft.Json.Linq;
-using System.Collections;
-using AsyncFriendlyStackTrace;
+using Path = System.IO.Path;
 
 namespace DangerZoneHackerTracker
 {
@@ -40,6 +31,7 @@ namespace DangerZoneHackerTracker
 		CheaterSet Cheaters = CheaterSet.Init();
 		private readonly Color HackerColor = Color.FromRgb(160, 0, 0);
 		private readonly Color BaseColor = Color.FromArgb(0, 0, 0, 0);
+
 		public MainWindow()
 		{
 			InitializeComponent();
@@ -214,6 +206,9 @@ namespace DangerZoneHackerTracker
 				Style = labelStyle
 			};
 
+			HandleHover(user);
+
+
 			// single underscores have special meanings and have to be escaped
 			user.UI.SteamID = new Label()
 			{
@@ -318,6 +313,101 @@ namespace DangerZoneHackerTracker
 
 				AddToGrid(user.UI.Button, Grid.GetColumn(LblThreatLevel) + 1);
 			}
+		}
+
+		private Point GetMousePosition(IInputElement e = null)
+		{
+			//e ??= this;
+			var pos = Mouse.GetPosition(this);
+			if(this.WindowState == WindowState.Maximized)
+			{
+				return this.PointToScreen(pos);
+			}
+			else
+			{
+				return pos;
+			}
+			//return pos;
+		}
+
+
+		private void HandleHover(User user)
+		{
+			var name = user.UI.Name;
+			ProfileDataWindow window = null;
+			bool isHovering = false;
+			Action<MouseEventArgs> hoverDelayCallback = (MouseEventArgs args) =>
+			{
+				if (!name.IsMouseOver)
+				{
+					return;
+				}
+
+				var pos = GetMousePosition(name);
+				double left = this.Left;
+				double top = this.Top;
+				if(this.WindowState == WindowState.Maximized)
+				{
+					left = 0;
+					top = 0;
+				}
+
+
+				window = new ProfileDataWindow(user.Profile)
+				{
+					WindowStartupLocation = WindowStartupLocation.Manual,
+					Left = pos.X + left,
+					Top = pos.Y + top,
+				};
+				//window.Left += window.Width / 2;
+				window.Top += 24;
+				window.Left -= window.Width / 2 ;
+				window.Show();
+
+			};
+
+			var dispatcher = new ThreadSafeEvent<Action<MouseEventArgs>>();
+			dispatcher.AddEvent(hoverDelayCallback);
+
+			Timer timer = null;
+			name.MouseEnter += (object sender, MouseEventArgs args) =>
+			{
+				dispatcher.Invoke(args);
+				isHovering = true;
+
+			};
+
+			name.MouseLeave += (object sender, MouseEventArgs args) =>
+			{
+				isHovering = false;
+				timer?.Dispose();
+				window?.Close();
+			};
+
+			name.MouseMove += (object sender, MouseEventArgs e) =>
+			{
+				if(!isHovering)
+				{
+					return;
+				}
+
+				var pos = GetMousePosition(name);
+				double left = this.Left;
+				double top = this.Top;
+				if (this.WindowState == WindowState.Maximized)
+				{
+					left = 0;
+					top = 0;
+				}
+
+				window.Top = pos.Y + top + 24;
+				window.Left = pos.X + left - (window.Width / 2);
+			};
+		}
+
+		protected override void OnStateChanged(EventArgs e)
+		{
+			base.OnStateChanged(e);
 		}
 
 		private void User_ProfileRetreived(User user, ProfileData.Profile profile)
@@ -496,18 +586,18 @@ namespace DangerZoneHackerTracker
 				return user.Cheater.ThreatLevel switch
 				{
 					-1 => Color.FromArgb(100, 255, 0, 0),
-					0  => Color.FromArgb(100, 255, 255, 0),
-					1  => Color.FromArgb(100, 255, 225, 0),
-					2  => Color.FromArgb(100, 255, 200, 0),
-					3  => Color.FromArgb(100, 255, 175, 0),
-					4  => Color.FromArgb(100, 255, 150, 0),
-					5  => Color.FromArgb(100, 255, 125, 0),
-					6  => Color.FromArgb(100, 255, 100, 0),
-					7  => Color.FromArgb(100, 255, 75, 0),
-					8  => Color.FromArgb(100, 255, 50, 0),
-					9  => Color.FromArgb(100, 255, 25, 0),
+					0 => Color.FromArgb(100, 255, 255, 0),
+					1 => Color.FromArgb(100, 255, 225, 0),
+					2 => Color.FromArgb(100, 255, 200, 0),
+					3 => Color.FromArgb(100, 255, 175, 0),
+					4 => Color.FromArgb(100, 255, 150, 0),
+					5 => Color.FromArgb(100, 255, 125, 0),
+					6 => Color.FromArgb(100, 255, 100, 0),
+					7 => Color.FromArgb(100, 255, 75, 0),
+					8 => Color.FromArgb(100, 255, 50, 0),
+					9 => Color.FromArgb(100, 255, 25, 0),
 					10 => Color.FromArgb(100, 255, 0, 0),
-					_  => Color.FromArgb(100, 255, 0, 0),
+					_ => Color.FromArgb(100, 255, 0, 0),
 				};
 			}
 			else
@@ -533,12 +623,12 @@ namespace DangerZoneHackerTracker
 							threatLevel += 2;
 						}
 
-						if (user.Profile.mostPlayedGames is not null && user.Profile.mostPlayedGames.mostPlayedGame  is not null)
+						if (user.Profile.mostPlayedGames is not null && user.Profile.mostPlayedGames.mostPlayedGame is not null)
 						{
 							var game = user.Profile.mostPlayedGames.MostPlayedGames.FirstOrDefault(t => t.gameName == "Counter-Strike: Global Offensive");
 							if (game is not null)
 							{
-								var timeThreat = 10 - (Convert.ToDouble(game.hoursPlayed) / 100);
+								var timeThreat = 10 - (Convert.ToDouble(game.hoursOnRecord) / 100);
 								threatLevel += (int)Math.Clamp(timeThreat, 0, 10);
 							}
 						}
@@ -546,23 +636,41 @@ namespace DangerZoneHackerTracker
 						{
 							//threatLevel += 2;
 						}
+						if (user.Profile.vacBanned is not null)
+						{
+							// only shows 1, 0, or null
+							if (user.Profile.vacBanned == "1")
+							{
+								threatLevel += 5;
+							}
+						}
 					}
 					else
 					{
 						threatLevel = -1;
 					}
-
 				}
+				threatLevel = Math.Clamp(threatLevel, 0, 10);
 				return threatLevel switch
 				{
-					2 => Color.FromArgb(25, 100, 100, 50),
-					3 => Color.FromArgb(25, 100, 100, 75),
-					4 => Color.FromArgb(25, 100, 100, 125),
-					5 => Color.FromArgb(25, 100, 100, 150),
-					6 => Color.FromArgb(25, 100, 100, 100),
-					7 => Color.FromArgb(25, 100, 100, 175),
-					8 => Color.FromArgb(25, 100, 100, 200),
-					9 => Color.FromArgb(25, 100, 100, 225),
+					1 =>
+					Color.FromArgb(25, 100, 100, 225),
+					2 =>
+					Color.FromArgb(25, 100, 100, 200),
+					3 =>
+					Color.FromArgb(25, 100, 100, 175),
+					4 =>
+					Color.FromArgb(25, 100, 100, 150),
+					5 =>
+					Color.FromArgb(25, 100, 100, 125),
+					6 =>
+					Color.FromArgb(25, 100, 100, 100),
+					7 =>
+					Color.FromArgb(25, 100, 100, 75),
+					8 =>
+					Color.FromArgb(25, 100, 100, 50),
+					9 =>
+					Color.FromArgb(25, 100, 100, 25),
 					10 => Color.FromArgb(25, 0, 100, 255),
 					_ => Color.FromArgb(0, 0, 0, 0),
 				};

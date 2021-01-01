@@ -41,7 +41,7 @@
     </controls:BiaWindow.Resources>
 
 
-    <Grid>
+    <Grid x:Name="OuterGrid">
         <Grid.RowDefinitions>
             <RowDefinition Height="24"></RowDefinition>
             <RowDefinition Height="*"/>
@@ -53,8 +53,8 @@
         <Label Grid.Row="0" x:Name="LblServer" Content="Server: N/A" Margin="20,8,0,0"/>
         <Label Grid.Row="0" x:Name="LblMap" Content="Map: N/A" Margin="20,8,0,0"/>
         </WrapPanel>
-        <Grid Grid.Row="1">
-            <ScrollViewer Margin="10,10,10,10">
+        <Grid Grid.Row="1" Panel.ZIndex="1">
+            <ScrollViewer x:Name="ScrollViewer" Margin="10,10,10,10">
                 <Grid Background="#FF232323" x:FieldModifier="public" x:Name="ConnectedUserGrid" VerticalAlignment="Top">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />

@@ -615,12 +615,22 @@ namespace DangerZoneHackerTracker
 							}
 							var difference = DateTime.Now - memberSince;
 
-							var memberThreat = 5 - (difference.TotalDays / 365);
-							threatLevel += (int)Math.Clamp(memberThreat, 0, 10);
+							var months = difference.TotalDays / 30;
+							var years = difference.TotalDays / 365;
+							double threat = 0;
+							if(years < 2)
+							{
+								threat = (24 - months) / 2.4;
+							}
+
+								user.UI.ThreatLevel.Text += $"age: {(int)threat} ";
+								threatLevel += (int)Math.Clamp(threat, 0, 10);
 						}
 						else
 						{
 							threatLevel += 2;
+							user.UI.ThreatLevel.Text += $"age: N/A ";
+
 						}
 
 						if (user.Profile.mostPlayedGames is not null && user.Profile.mostPlayedGames.mostPlayedGame is not null)
@@ -628,7 +638,9 @@ namespace DangerZoneHackerTracker
 							var game = user.Profile.mostPlayedGames.MostPlayedGames.FirstOrDefault(t => t.gameName == "Counter-Strike: Global Offensive");
 							if (game is not null)
 							{
-								var timeThreat = 10 - (Convert.ToDouble(game.hoursOnRecord) / 100);
+								var timeThreat = Math.Round(10 - (Convert.ToDouble(game.hoursOnRecord) / 100));
+								user.UI.ThreatLevel.Text += $"time: {(int)timeThreat} ";
+
 								threatLevel += (int)Math.Clamp(timeThreat, 0, 10);
 							}
 						}
@@ -641,6 +653,8 @@ namespace DangerZoneHackerTracker
 							// only shows 1, 0, or null
 							if (user.Profile.vacBanned == "1")
 							{
+								user.UI.ThreatLevel.Text += $"vac: 5 ";
+
 								threatLevel += 5;
 							}
 						}
@@ -654,24 +668,24 @@ namespace DangerZoneHackerTracker
 				return threatLevel switch
 				{
 					1 =>
-					Color.FromArgb(25, 100, 100, 225),
+					Color.FromArgb(20, 100, 100, 225),
 					2 =>
-					Color.FromArgb(25, 100, 100, 200),
+					Color.FromArgb(30, 100, 100, 200),
 					3 =>
-					Color.FromArgb(25, 100, 100, 175),
+					Color.FromArgb(40, 100, 100, 175),
 					4 =>
-					Color.FromArgb(25, 100, 100, 150),
+					Color.FromArgb(50, 100, 100, 150),
 					5 =>
-					Color.FromArgb(25, 100, 100, 125),
+					Color.FromArgb(60, 100, 100, 125),
 					6 =>
-					Color.FromArgb(25, 100, 100, 100),
+					Color.FromArgb(70, 100, 100, 100),
 					7 =>
-					Color.FromArgb(25, 100, 100, 75),
+					Color.FromArgb(80, 100, 100, 75),
 					8 =>
-					Color.FromArgb(25, 100, 100, 50),
+					Color.FromArgb(90, 100, 100, 50),
 					9 =>
-					Color.FromArgb(25, 100, 100, 25),
-					10 => Color.FromArgb(25, 0, 100, 255),
+					Color.FromArgb(100, 100, 100, 25),
+					10 => Color.FromArgb(100, 255, 255, 0),
 					_ => Color.FromArgb(0, 0, 0, 0),
 				};
 			}

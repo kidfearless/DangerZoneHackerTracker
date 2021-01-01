@@ -77,6 +77,7 @@ namespace DangerZoneHackerTracker
 				this.Profile = await Steam.GetProfileDataAsync(url);
 				this.ProfileRetreived?.Invoke(this, this.Profile);
 			}
+			// sometimes it just fails for no reason. so we just try again.
 			catch
 			{
 				try

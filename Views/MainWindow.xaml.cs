@@ -466,12 +466,12 @@ namespace DangerZoneHackerTracker
 
 		private void BulkAdd_Clicked(object sender, RoutedEventArgs e)
 		{
-			new BulkAddWindow().ShowDialog();
+			new BulkAddWindow().Show();
 		}
 
 		private void SingleAdd_Clicked(object sender, RoutedEventArgs e)
 		{
-			new AddCheater().ShowDialog();
+			new AddCheater().Show();
 		}
 
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Wrong Usage", "DF0010:Marks undisposed local variables.", Justification = "It is disposed")]
@@ -658,13 +658,15 @@ namespace DangerZoneHackerTracker
 								threatLevel += 5;
 							}
 						}
+						threatLevel = Math.Clamp(threatLevel, 0, 10);
 					}
 					else
 					{
 						threatLevel = -1;
+						user.UI.ThreatLevel.Text += $"private: N/A ";
+
 					}
 				}
-				threatLevel = Math.Clamp(threatLevel, 0, 10);
 				return threatLevel switch
 				{
 					1 =>
@@ -686,6 +688,7 @@ namespace DangerZoneHackerTracker
 					9 =>
 					Color.FromArgb(100, 100, 100, 25),
 					10 => Color.FromArgb(100, 255, 255, 0),
+					-1 => Color.FromArgb(50, 200, 200, 200),
 					_ => Color.FromArgb(0, 0, 0, 0),
 				};
 			}

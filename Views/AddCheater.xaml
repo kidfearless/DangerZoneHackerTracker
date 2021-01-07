@@ -28,23 +28,23 @@
         <TextBox x:Name="TxtSteam"
 				 TextWrapping="Wrap" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Height="Auto" VerticalContentAlignment="Top" AcceptsReturn="True"
 				 GotFocus="TxtSteam_GotFocus" LostFocus="TxtSteam_LostFocus" 
-				 Text="https://steamcommunity.com/id/kidfearless/" Margin="10,23,10,0"/>
+				 Text="https://steamcommunity.com/id/kidfearless/" Margin="10,23,10,0" />
 
         <Label Margin="10,5,10,0" Grid.Column="1" Content="Threat Level" Height="70" Grid.RowSpan="2" VerticalAlignment="Top" />
         <TextBox x:Name="TxtThreat"
 				 TextWrapping="Wrap" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Height="Auto" VerticalContentAlignment="Top" AcceptsReturn="True"
 				 GotFocus="TxtThreat_GotFocus" LostFocus="TxtThreat_LostFocus"
-				 Text="1-10" Grid.Column="1" Margin="10,23,10,0"/>
+				 Text="1-10" Grid.Column="1" Margin="10,23,10,0" />
+
+        <Label Margin="10,5,10,0" Content="Cheat List" Grid.Column="0" Grid.Row="1" Height="46" VerticalAlignment="Top"/>
+        <TextBox x:Name="TxtCheats"
+				 TextWrapping="Wrap" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Height="Auto" VerticalContentAlignment="Top" AcceptsReturn="True"
+				 Text="" Grid.Column="0" Margin="10,23,10,0" Grid.Row="1"  />
 
         <Label Margin="10,5,10,0" Content="Notes" Grid.Row="1" Grid.Column="1" Height="46" VerticalAlignment="Top"/>
         <TextBox x:Name="TxtNotes"
 				 TextWrapping="Wrap" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Height="Auto" VerticalContentAlignment="Top" AcceptsReturn="True"
 				 Text="" Margin="10,23,10,0" Grid.Row="1" Grid.Column="1"/>
-
-        <Label Margin="10,5,10,0" Content="Cheat List" Grid.Column="0" Grid.Row="1" Height="46" VerticalAlignment="Top"/>
-        <TextBox x:Name="TxtCheats"
-				 TextWrapping="Wrap" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Height="Auto" VerticalContentAlignment="Top" AcceptsReturn="True"
-				 Text="" Grid.Column="0" Margin="10,23,10,0" Grid.Row="1"/>
 
         <Label Margin="10,5,10,0" Content="Submitter" Grid.Column="0" Grid.Row="2" Height="46" VerticalAlignment="Top"/>
         <TextBox x:Name="TxtSubmitter"

@@ -32,7 +32,8 @@ namespace DangerZoneHackerTracker
 		{
 		}
 
-
+		// C# doesn't treat static classes like objects but rather like namespaces with variables inside them.
+		// So to get static class objects we create a single instance of the object and return it in this function.
 		public static CheaterSet Init()
 		{
 			// we've already created one so we want all future instances to just be a reference to the original.
@@ -67,6 +68,10 @@ namespace DangerZoneHackerTracker
 			return path;
 		}
 
+		// Originally I used a sqlite database to store this data, but that made it prone to errors
+		// if I needed to modify the table in any way. So now we'll store it in memory and keep a copy
+		// syncronized with the file. If this game ever gets bad enough where we have thousands of cheaters in our
+		// list then I'll need to move back to something more efficient.
 		public void Save()
 		{
 			var jsonString = JsonConvert.SerializeObject(this, Formatting.Indented, JsonSettings);

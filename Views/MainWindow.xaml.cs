@@ -171,6 +171,9 @@ namespace DangerZoneHackerTracker
 			}
 		}
 
+		// This function handles all the heavy lifting for creating the UI elements and adding them
+		// to the grid. I use styles whenever possible so that they can be edited at runtime.
+		// but some elements have their own implicit styling that breaks when my own is assigned.
 		private void AddGrid(User user)
 		{
 			/*<Label Style="{StaticResource TableRowStyle}" x:Name="LblPicture" Grid.Column="0"></Label>
@@ -214,6 +217,30 @@ namespace DangerZoneHackerTracker
 			{
 				Content = user.SteamID.Render(false).Replace("_", "__"),
 				Style = labelStyle
+			};
+
+			user.UI.SteamID.MouseRightButtonDown += (object sender, MouseButtonEventArgs e) =>
+			{
+				if(user.IsCheater)
+				{
+					Clipboard.SetText($"{user.Name}, {user.Cheater.CheatList}, {user.Cheater.ThreatLevel}, {user.Cheater.Notes} " +
+						$"\nhttp://steamcommunity.com/profiles/{user.AccountID}");
+
+				}
+				else
+				{
+					Clipboard.SetText($"http://steamcommunity.com/profiles/{user.AccountID}");
+				}
+
+				user.UI.SteamID.Content = "*Copied To Clipboard*";
+				var timer = new System.Timers.Timer(1000);
+				timer.Elapsed += (object sender, System.Timers.ElapsedEventArgs e) => Dispatcher.Invoke(() =>
+				{
+					user.UI.SteamID.Content = user.SteamID.Render(false).Replace("_", "__");
+
+					timer.Dispose();
+				});
+				timer.Start();
 			};
 
 			user.UI.CheatList = TextBoxCreate(user.Cheater?.CheatList);
@@ -579,7 +606,7 @@ namespace DangerZoneHackerTracker
 			new SettingsWindow().ShowDialog();
 		}
 
-		Color GetBackgroundColor(User user)
+		static Color GetBackgroundColor(User user)
 		{
 			if (user.IsCheater)
 			{

@@ -28,7 +28,7 @@ namespace DangerZoneHackerTracker
 	public partial class App : Application, IDisposable
 	{
 		Settings Settings;
-        RemoteConsole Console;
+		RemoteConsole Console;
 		CheaterSet Cheaters;
 		EventableSortedSet<User> users;
 		public EventableSortedSet<User> Users { get => users; }

@@ -306,7 +306,30 @@ namespace DangerZoneHackerTracker
 					OnClientConnected(user);
 				};
 
-				AddToGrid(removeButton, Grid.GetColumn(LblThreatLevel) + 1);
+				AddToGrid(removeButton, Grid.GetColumn(LblButtonsAdd));
+
+				user.UI.AlertButton = new Button()
+				{
+					Content = "Alert Server",
+					Margin = new Thickness(5, 0, 10, 0)
+				};
+
+				user.UI.AlertButton.Click += (object sender, RoutedEventArgs e) =>
+				{
+					var thread  = new Thread(() =>
+					{
+						App.Current.Console.Execute($"say \"{user.Name} <{new SteamID(user.AccountID).Render(false)}> " +
+							$"has been caught using the following cheats: {user.Cheater.CheatList}.\"");
+						Thread.Sleep(1000);
+						App.Current.Console.Execute($"say \"Continue the game at your own risk\"");
+					});
+					thread.IsBackground = true;
+					thread.Priority = ThreadPriority.Lowest;
+					thread.Start();
+				};
+
+				AddToGrid(user.UI.AlertButton, Grid.GetColumn(LblButtonsAlert));
+
 			}
 			else
 			{
@@ -601,10 +624,7 @@ namespace DangerZoneHackerTracker
 			}
 		}
 
-		private void Settings_Clicked(object sender, RoutedEventArgs e)
-		{
-			new SettingsWindow().ShowDialog();
-		}
+		private void Settings_Clicked(object sender, RoutedEventArgs e) => new SettingsWindow().ShowDialog();
 
 		static Color GetBackgroundColor(User user)
 		{
@@ -691,7 +711,6 @@ namespace DangerZoneHackerTracker
 					{
 						threatLevel = -1;
 						user.UI.ThreatLevel.Text += $"private: N/A ";
-
 					}
 				}
 				return threatLevel switch

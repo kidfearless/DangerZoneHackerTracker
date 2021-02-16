@@ -18,6 +18,7 @@
             </MenuItem>
             <MenuItem Header="Import" Click="Import_Clicked"></MenuItem>
             <MenuItem Header="Export" Click="Export_Clicked"></MenuItem>
+            <MenuItem Header="Cheaters" Click="Cheaters_Clicked"></MenuItem>
             <MenuItem Header="Settings" Click="Settings_Clicked"></MenuItem>
         </Menu>
     </controls:BiaWindow.Menu>
@@ -48,10 +49,10 @@
         </Grid.RowDefinitions>
 
         <WrapPanel Orientation="Horizontal" Grid.Row="0">
-            
-        <Label Grid.Row="0" x:Name="LblPlayerCount" Margin="10,8,0,0" Content="Players: 0" />
-        <Label Grid.Row="0" x:Name="LblServer" Content="Server: N/A" Margin="20,8,0,0"/>
-        <Label Grid.Row="0" x:Name="LblMap" Content="Map: N/A" Margin="20,8,0,0"/>
+
+            <Label Grid.Row="0" x:Name="LblPlayerCount" Margin="10,8,0,0" Content="Players: 0" />
+            <Label Grid.Row="0" x:Name="LblServer" Content="Server: N/A" Margin="20,8,0,0"/>
+            <Label Grid.Row="0" x:Name="LblMap" Content="Map: N/A" Margin="20,8,0,0"/>
         </WrapPanel>
         <Grid Grid.Row="1" Panel.ZIndex="1">
             <ScrollViewer x:Name="ScrollViewer" Margin="10,10,10,10">
@@ -65,6 +66,7 @@
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="auto" />
+                        <ColumnDefinition Width="auto" />
                     </Grid.ColumnDefinitions>
                     <Label Style="{StaticResource TableRowStyle}" x:Name="LblPicture" Grid.Column="0"></Label>
                     <Label Style="{StaticResource TableRowStyle}" x:Name="LblName" Grid.Column="1" >Name</Label>
@@ -74,6 +76,7 @@
                     <Label Style="{StaticResource TableRowStyle}" x:Name="LblNotes" Grid.Column="5" >Notes</Label>
                     <Label Style="{StaticResource TableRowStyle}" x:Name="LblThreatLevel" Grid.Column="6">Threat Level</Label>
                     <Label Style="{StaticResource TableRowStyle}" x:Name="LblButtonsAdd" Grid.Column="7"></Label>
+                    <Label Style="{StaticResource TableRowStyle}" x:Name="LblButtonsAlert" Grid.Column="8"></Label>
                 </Grid>
             </ScrollViewer>
         </Grid>

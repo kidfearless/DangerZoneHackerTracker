@@ -65,6 +65,7 @@ namespace DangerZoneHackerTracker
 			internal Label SteamID;
 			internal Rectangle BackgroundRect;
 			internal Button Button;
+			internal Button AlertButton;
 		}
 
 		public UIData UI = new();

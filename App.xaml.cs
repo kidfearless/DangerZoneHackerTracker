@@ -28,7 +28,7 @@ namespace DangerZoneHackerTracker
 	public partial class App : Application, IDisposable
 	{
 		Settings Settings;
-		RemoteConsole Console;
+		public RemoteConsole Console;
 		CheaterSet Cheaters;
 		EventableSortedSet<User> users;
 		public EventableSortedSet<User> Users { get => users; }
@@ -78,7 +78,7 @@ namespace DangerZoneHackerTracker
 			this.LoadCompleted += App_LoadCompleted;
 			this.Activated += App_Activated;
 
-			
+
 			ClientConnected.AddEvent(OnClientConnected);
 			ClientDisconnected.AddEvent(OnClientDisconnected);
 			MapChanged.AddEvent(OnMapChanged);
@@ -119,17 +119,17 @@ namespace DangerZoneHackerTracker
 
 		private void App_LoadCompleted(object sender, System.Windows.Navigation.NavigationEventArgs e)
 		{
-			
+
 		}
 
 		private void MainWindow_Activated(object sender, EventArgs e)
 		{
-			
+
 		}
 
 		private void ImportOldDatabase()
 		{
-			T TryGetValue<T>(SqliteDataReader reader, string value)
+			static T TryGetValue<T>(SqliteDataReader reader, string value)
 			{
 				try
 				{
@@ -143,7 +143,7 @@ namespace DangerZoneHackerTracker
 
 			if (!Settings["HasImportedDB"])
 			{
-				if(File.Exists(DatabasePath))
+				if (File.Exists(DatabasePath))
 				{
 					using var connection = new SqliteConnection($"Data Source={DatabasePath}");
 					connection.Open();
@@ -164,7 +164,7 @@ namespace DangerZoneHackerTracker
 					{
 						using var subkey = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Valve\Steam");
 						Settings["UserNameOverride"] = subkey.GetValue("LastGameNameUsed") as string;
-					} 
+					}
 					#endregion
 
 					#region Import Cheaters
@@ -182,7 +182,7 @@ namespace DangerZoneHackerTracker
 							CheatList = TryGetValue<string>(reader, "CheatList"),
 							AccountID = steam.ConvertToUInt64(),
 							LastKnownName = TryGetValue<string>(reader, "LastKnownName"),
-							Notes = TryGetValue<string>(reader, "Notes")??"",
+							Notes = TryGetValue<string>(reader, "Notes") ?? "",
 							Submitter = Settings["UserNameOverride"],
 							ThreatLevel = (int)TryGetValue<long>(reader, "ThreatLevel")
 						};
@@ -194,7 +194,7 @@ namespace DangerZoneHackerTracker
 			}
 		}
 
-		
+
 
 		private void OnClientDisconnected(User user)
 		{
@@ -207,17 +207,17 @@ namespace DangerZoneHackerTracker
 			Debug.WriteLine($"'{user.Name}' has joined the server");
 			user.Cheater = Cheaters.FirstOrDefault(t => t.AccountID == user.AccountID);
 			Users.Add(user);
-			if(user.IsCheater)
+			if (user.IsCheater)
 			{
 
 				ToastManager.ShowToastAsync(
-					title:   $"Hacker {user.Name} Found In Game",
+					title: $"Hacker {user.Name} Found In Game",
 					message: $"Threat Level: {user.Cheater.ThreatLevel}\n" +
 							 $"Known Cheats: {user.Cheater.CheatList}\n" +
 							 $"Previous Name: {user.Cheater.LastKnownName}",
 						duration: TimeSpan.FromSeconds(10.0));
 				user.Cheater.LastKnownName = user.Name;
-				if(user.Cheater.ThreatLevel > 3)
+				if (user.Cheater.ThreatLevel > 3)
 				{
 					SoundManager.PlayEmbeddedSound("haaaaxedit.mp3", Settings["Volume"]);
 				}
@@ -227,7 +227,7 @@ namespace DangerZoneHackerTracker
 
 		private void Console_LineRead(string line)
 		{
-			if(line.StartsWith("hostname"))
+			if (line.StartsWith("hostname"))
 			{
 				var hostMatch = HostNameRegex.Match(line);
 				if (HostName != hostMatch.Groups[1].Value)
@@ -238,14 +238,14 @@ namespace DangerZoneHackerTracker
 				return;
 			}
 
-			if(line == "Not connected to server")
+			if (line == "Not connected to server")
 			{
 				// remove the users from the list preemptively but not from the grid until we have a new set.
 				Users.Clear();
 				return;
 			}
 
-			if(line == "#end")
+			if (line == "#end")
 			{
 				var disconnectedUsers = users.Except(TempUsers, new UserComparer()).ToArray();
 				foreach (var user in disconnectedUsers)
@@ -265,7 +265,7 @@ namespace DangerZoneHackerTracker
 			}
 
 			var match = SteamIDRegex.Match(line);
-			if(match.Success)
+			if (match.Success)
 			{
 				User user = new User()
 				{
@@ -279,9 +279,9 @@ namespace DangerZoneHackerTracker
 			}
 
 			match = MapNameRegex.Match(line);
-			if(match.Success)
+			if (match.Success)
 			{
-				if(MapName != match.Groups[1].Value)
+				if (MapName != match.Groups[1].Value)
 				{
 					MapChanged.Invoke(MapName, match.Groups[1].Value);
 					MapName = match.Groups[1].Value;

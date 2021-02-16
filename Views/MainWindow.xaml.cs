@@ -614,7 +614,7 @@ namespace DangerZoneHackerTracker
 
 			if ((bool)dialog.ShowDialog())
 			{
-				var jsonString = JsonConvert.SerializeObject(Cheaters, Formatting.Indented, new JsonSerializerSettings()
+				var jsonString = JsonConvert.SerializeObject(Cheaters.Where(c => c.ThreatLevel != 0), Formatting.Indented, new JsonSerializerSettings()
 				{
 					ContractResolver = new SettingsResolver()
 				});

@@ -624,6 +624,8 @@ namespace DangerZoneHackerTracker
 			}
 		}
 
+		private void Cheaters_Clicked(object sender, RoutedEventArgs e) => new ViewCheatersWindow().ShowDialog();
+
 		private void Settings_Clicked(object sender, RoutedEventArgs e) => new SettingsWindow().ShowDialog();
 
 		static Color GetBackgroundColor(User user)

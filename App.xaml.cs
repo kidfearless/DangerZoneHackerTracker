@@ -102,13 +102,11 @@ namespace DangerZoneHackerTracker
 		{
 
 			// wait until the first window is shown so that they can get the events when they are first fired.
-			try
-			{
-				Console = new RemoteConsole();
-				Console.LineRead += Console_LineRead;
-				this.Activated -= App_Activated;
-			}
-			catch (Exception ex)
+			Console = new RemoteConsole();
+			bool didConnect = Console.AwaitConnection();
+			Console.LineRead += Console_LineRead;
+			this.Activated -= App_Activated;
+			if (!didConnect)
 			{
 				var wind = new MissingParamsWindow()
 				{

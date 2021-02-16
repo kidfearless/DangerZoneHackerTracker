@@ -26,21 +26,47 @@ namespace DangerZoneHackerTracker
 		private int _port;
 		private bool Resetting = false;
 
-		public RemoteConsole(string server = "127.0.0.1", int port = 2121)
+		public RemoteConsole()
 		{
-			_base = new TcpClient(server, port);
-			_server = server;
-			_port = port;
-			this.Stream = _base.GetStream();
-			Reader = new StreamReader(Stream);
-
-			Timer = new SystemTimer(TimeSpan.FromSeconds(Settings["UpdateRate"]).TotalMilliseconds);
-			Timer.Elapsed += Timer_Elapsed;
-			Timer.Start();
-
-			Settings.SettingChanged += Settings_SettingChanged;
-			new Thread(StreamReaderThread).Start();
+			
 		}
+
+		// try to connect to the server when it's ready
+		public bool AwaitConnection(string server = "127.0.0.1", int port = 2121)
+		{
+			bool connectedOnFirstTry = false;
+			try
+			{
+				_base = new TcpClient(server, port);
+				_server = server;
+				_port = port;
+				this.Stream = _base.GetStream();
+				Reader = new StreamReader(Stream);
+
+				Timer = new SystemTimer(TimeSpan.FromSeconds(Settings["UpdateRate"]).TotalMilliseconds);
+				Timer.Elapsed += Timer_Elapsed;
+				Timer.Start();
+
+				Settings.SettingChanged += Settings_SettingChanged;
+				new Thread(StreamReaderThread).Start();
+				connectedOnFirstTry = true;
+			}
+			catch (SocketException e)
+			{
+				// we've failed to connect to csgo. So we'll keep on retrying in the background,
+				// and let them know they need to launch csgo with the given parameters.
+				var thread = new Thread(() =>
+				{
+					Thread.Sleep(TimeSpan.FromSeconds(15).Milliseconds);
+					this.AwaitConnection(server, port);
+				});
+				thread.Priority = ThreadPriority.Lowest;
+				thread.IsBackground = true;
+				thread.Start();
+			}
+			return connectedOnFirstTry;
+		}
+
 
 		private void Settings_SettingChanged(string setting, Dynamic oldValue, Dynamic newValue)
 		{

@@ -722,17 +722,17 @@ namespace DangerZoneHackerTracker
 					3 =>
 					Color.FromArgb(40, 100, 100, 175),
 					4 =>
-					Color.FromArgb(50, 100, 100, 150),
+					Color.FromArgb(50, 115, 115, 150),
 					5 =>
-					Color.FromArgb(60, 100, 100, 125),
+					Color.FromArgb(60, 125, 125, 125),
 					6 =>
-					Color.FromArgb(70, 100, 100, 100),
+					Color.FromArgb(70, 150, 150, 100),
 					7 =>
-					Color.FromArgb(80, 100, 100, 75),
+					Color.FromArgb(80, 175, 175, 75),
 					8 =>
-					Color.FromArgb(90, 100, 100, 50),
+					Color.FromArgb(90, 200, 200, 50),
 					9 =>
-					Color.FromArgb(100, 100, 100, 25),
+					Color.FromArgb(100, 225, 225, 25),
 					10 => Color.FromArgb(100, 255, 255, 0),
 					-1 => Color.FromArgb(50, 200, 200, 200),
 					_ => Color.FromArgb(0, 0, 0, 0),

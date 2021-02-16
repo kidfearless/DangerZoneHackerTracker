@@ -73,36 +73,43 @@ namespace DangerZoneHackerTracker
 
 		private async Task ReadLine(string line)
 		{
-			string url;
-			var steam = new SteamID(0);
-			if (!SteamID.CommunityURLRegex.IsMatch(line))
+			try
 			{
-				if (!steam.SetFromString(line) && !steam.SetFromSteam3String(line))
+
+				string url;
+				var steam = new SteamID(0);
+				if (!SteamID.CommunityURLRegex.IsMatch(line))
 				{
-					return;
+					if (!steam.SetFromString(line) && !steam.SetFromSteam3String(line))
+					{
+						return;
+					}
+					url = $"https://steamcommunity.com/profiles/{steam.ConvertToUInt64()}/?xml=1";
 				}
-				url = $"https://steamcommunity.com/profiles/{steam.ConvertToUInt64()}/?xml=1";
+				else
+				{
+					url = $"{SteamID.CommunityURLRegex.Match(line).Value}/?xml=1";
+				}
+
+				var data = await Steam.GetProfileDataAsync(url);
+
+
+
+				Cheater cheater = new()
+				{
+					AccountID = Convert.ToUInt64(data.steamID64),
+					CheatList = "<Bulk Added User>",
+					LastKnownName = data.steamID,
+					Submitter = Settings["UserNameOverride"],
+					ThreatLevel = -1
+				};
+
+				TempCheaters.Add(cheater);
+				ReturnLines.Remove(line);
 			}
-			else
+			catch (Exception)
 			{
-				url = $"{SteamID.CommunityURLRegex.Match(line).Value}/?xml=1";
 			}
-
-			var data = await Steam.GetProfileDataAsync(url);
-
-
-
-			Cheater cheater = new()
-			{
-				AccountID = Convert.ToUInt64(data.steamID64),
-				CheatList = "<Bulk Added User>",
-				LastKnownName = data.steamID,
-				Submitter = Settings["UserNameOverride"],
-				ThreatLevel = -1
-			};
-
-			TempCheaters.Add(cheater);
-			ReturnLines.Remove(line);
 		}
 
 		

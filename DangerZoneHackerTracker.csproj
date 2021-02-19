@@ -48,12 +48,16 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <Compile Remove="Controls\**" />
 	  <Compile Remove="Notifications.Wpf.Core\**" />
 	  <Compile Remove="Publish\**" />
+	  <EmbeddedResource Remove="Controls\**" />
 	  <EmbeddedResource Remove="Notifications.Wpf.Core\**" />
 	  <EmbeddedResource Remove="Publish\**" />
+	  <None Remove="Controls\**" />
 	  <None Remove="Notifications.Wpf.Core\**" />
 	  <None Remove="Publish\**" />
+	  <Page Remove="Controls\**" />
 	  <Page Remove="Notifications.Wpf.Core\**" />
 	  <Page Remove="Publish\**" />
 	</ItemGroup>

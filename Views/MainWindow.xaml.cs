@@ -277,7 +277,7 @@ namespace DangerZoneHackerTracker
 				user.Cheater.Notes = user.UI.Notes.Text;
 				Cheaters.Save();
 			}
-			//notes.KeyDown += HandleText;
+
 			user.UI.Notes.TextChanged += HandleText;
 			user.UI.ThreatLevel.TextChanged += HandleText;
 			user.UI.CheatList.TextChanged += HandleText;

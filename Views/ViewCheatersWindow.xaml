@@ -1,17 +1,19 @@
-﻿<controls:BiaWindow x:Class="DangerZoneHackerTracker.Views.ViewCheatersWindow" Title="Add Cheater"
+﻿<controls:BiaWindow x:Class="DangerZoneHackerTracker.Views.ViewCheatersWindow" 
 	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:local="clr-namespace:DangerZoneHackerTracker"
-	xmlns:controls="clr-namespace:Biaui.Controls;assembly=Biaui" mc:Ignorable="d" WindowStartupLocation="CenterScreen" Height="450" Width="800" Style="{StaticResource BiaWindowSpaceSavingStyle}">
+	xmlns:controls="clr-namespace:Biaui.Controls;assembly=Biaui"
+    mc:Ignorable="d" Style="{StaticResource BiaWindowSpaceSavingStyle}"
+    Title="Edit Cheaters" WindowStartupLocation="CenterScreen" Height="720" Width="1280" >
     <controls:BiaWindow.Resources>
         <Style TargetType="Label" x:Key="TableRowStyle">
             <Setter Property="Margin" Value="5,0,5,0"/>
             <Setter Property="FontSize" Value="12" />
         </Style>
         <Style x:Key="TableRowLabelStyle" TargetType="Control">
-            <Setter Property="Margin" Value="0,11,0,0"/>
+            <Setter Property="Margin" Value="0,7,0,0"/>
         </Style>
         <Style TargetType="Button"  BasedOn="{StaticResource {x:Type Button}}">
             <Setter Property="Margin" Value="5,0,10,0"/>
@@ -24,40 +26,43 @@
         </Style>
     </controls:BiaWindow.Resources>
     <Grid>
-		<Grid x:Name="OuterGrid">
-			<Grid.RowDefinitions>
-				<RowDefinition Height="24"></RowDefinition>
-				<RowDefinition Height="*"/>
-			</Grid.RowDefinitions>
+        <Grid x:Name="OuterGrid">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="24"></RowDefinition>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
 
-			<WrapPanel Orientation="Horizontal" Grid.Row="0">
-				<Label Grid.Row="0" x:Name="LblCheaterCount" Margin="10,8,0,0" Content="Cheaters: 0" />
-			</WrapPanel>
-			<Grid Grid.Row="1" Panel.ZIndex="1">
-				<ScrollViewer x:Name="ScrollViewer" Margin="10,10,10,10">
-					<Grid Background="#FF232323" x:FieldModifier="public" x:Name="GridCheaters" VerticalAlignment="Top">
-						<Grid.ColumnDefinitions>
-							<ColumnDefinition Width="*" />
-							<ColumnDefinition Width="*" />
-							<ColumnDefinition Width="Auto" />
-							<ColumnDefinition Width="Auto" />
+            <WrapPanel Orientation="Horizontal" Grid.Row="0">
+                <Label Grid.Row="0" x:Name="LblTotalCount" Margin="10,8,0,0" Content="Total: 0" />
+                <Label Grid.Row="0" x:Name="LblCheaterCount" Margin="10,8,0,0" Content="Cheaters: 0" />
+                <Label Grid.Row="0" x:Name="LblUserCount" Margin="10,8,0,0" Content="Notes: 0" />
+                <Label Grid.Row="0" x:Name="LblWLCount" Margin="10,8,0,0" Content="WhiteListed: 0" />
+            </WrapPanel>
+            <Grid Grid.Row="1" Panel.ZIndex="1">
+                <ScrollViewer x:Name="ScrollViewer" Margin="10,10,10,10">
+                    <Grid Background="#FF232323" x:FieldModifier="public" x:Name="GridCheaters" VerticalAlignment="Top">
+                        <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
-						</Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
 
-						<CheckBox Grid.Column="0"></CheckBox>
-						<Label Grid.Column="1">sG | KiD Fearless</Label>
-						<Label Grid.Column="2">STEAM:0:1:29867327</Label>
-						<TextBox Grid.Column="3">KiD Fearless</TextBox>
-						<TextBox Grid.Column="4">Aimbot, spinbot, wallls, esp, etc.</TextBox>
-						<TextBox Grid.Column="5">Spawns in the rescure zone when he's not a bitch</TextBox>
-						<TextBox Grid.Column="6">10</TextBox>
-						<Button Grid.Column="7">Remove</Button>
-					</Grid>
-				</ScrollViewer>
-			</Grid>
-		</Grid>
-	</Grid>
+                        <Label  Style="{StaticResource TableRowStyle}" Grid.Column="0" Margin="8,0,0,0">WL</Label>
+                        <Label  Style="{StaticResource TableRowStyle}" Grid.Column="1">Name</Label>
+                        <Label  Style="{StaticResource TableRowStyle}" Grid.Column="2">Steam ID</Label>
+                        <Label  Style="{StaticResource TableRowStyle}" Grid.Column="3">Submitter</Label>
+                        <Label  Style="{StaticResource TableRowStyle}" Grid.Column="4">Cheat List</Label>
+                        <Label  Style="{StaticResource TableRowStyle}" Grid.Column="5">Notes</Label>
+                        <Label  Style="{StaticResource TableRowStyle}" Grid.Column="6">Threat Level</Label>
+                        <Label  Style="{StaticResource TableRowStyle}" Grid.Column="7" Margin="0,0,8,0"></Label>
+                    </Grid>
+                </ScrollViewer>
+            </Grid>
+        </Grid>
+    </Grid>
 </controls:BiaWindow>

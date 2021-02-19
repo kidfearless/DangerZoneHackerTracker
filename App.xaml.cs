@@ -97,25 +97,37 @@ namespace DangerZoneHackerTracker
 			//}
 		}
 
-#pragma warning disable CS0168 // Variable is declared but never used
 		private void App_Activated(object sender, EventArgs e)
 		{
-
-			// wait until the first window is shown so that they can get the events when they are first fired.
-			Console = new RemoteConsole();
-			bool didConnect = Console.AwaitConnection();
-			Console.LineRead += Console_LineRead;
+			// remove the event listener right away, this will be running on two threads
 			this.Activated -= App_Activated;
-			if (!didConnect)
+
+			// Add the code that we want to run when the Console connection completes a thread safe event listener.
+			ThreadSafeEvent<Action<bool>> callback = new();
+			callback.AddEvent((bool didConnect) =>
 			{
-				var wind = new MissingParamsWindow()
+				Console.LineRead += Console_LineRead;
+
+				if (!didConnect)
 				{
-					ShowActivated = true
-				};
-				wind.Show();
-			}
+					var wind = new MissingParamsWindow()
+					{
+						ShowActivated = true
+					};
+					wind.Show();
+				}
+			});
+
+			// Now we connect to the console on a separate thread.
+			// If csgo isn't running right, then this will take a few seconds and will block the ui thread while it tries to connect.
+			new Thread(() =>
+			{
+				Console = new RemoteConsole();
+				bool didConnect = Console.AwaitConnection();
+				callback.Invoke(didConnect);
+			}).Start();
+
 		}
-#pragma warning restore CS0168 // Variable is declared but never used
 
 		private void App_LoadCompleted(object sender, System.Windows.Navigation.NavigationEventArgs e)
 		{

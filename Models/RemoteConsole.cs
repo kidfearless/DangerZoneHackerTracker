@@ -51,7 +51,7 @@ namespace DangerZoneHackerTracker
 				new Thread(StreamReaderThread).Start();
 				connectedOnFirstTry = true;
 			}
-			catch (SocketException e)
+			catch (SocketException)
 			{
 				// we've failed to connect to csgo. So we'll keep on retrying in the background,
 				// and let them know they need to launch csgo with the given parameters.

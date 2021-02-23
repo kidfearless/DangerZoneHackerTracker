@@ -36,6 +36,7 @@ namespace DangerZoneHackerTracker
 		public BulkAddWindow()
 		{
 			InitializeComponent();
+			TempCheaters.Clear();
 		}
 
 		private void Button_Click(object sender, RoutedEventArgs e)
@@ -61,6 +62,9 @@ namespace DangerZoneHackerTracker
 			foreach(var chet in TempCheaters)
 			{
 				Cheaters.Add(chet);
+				ToastManager.ShowToastAsync("Successfully Added Cheater",
+					$"Cheater {chet.LastKnownName} has been added to the hacker tracker",
+				Notifications.Wpf.Core.NotificationType.Success);
 			}
 
 			// recreate the list with any values that couldn't be parsed.
@@ -69,6 +73,8 @@ namespace DangerZoneHackerTracker
 			{
 				TxtBlockWarning.Visibility = Visibility.Visible;
 			}
+
+			TempCheaters.Clear();
 		}
 
 		private async Task ReadLine(string line)

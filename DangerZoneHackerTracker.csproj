@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<OutputType>WinExe</OutputType>
-		<TargetFramework>net5.0-windows</TargetFramework>
+		<TargetFramework>net6.0-windows</TargetFramework>
 		<LangVersion>9.0</LangVersion>
 		<UseWPF>true</UseWPF>
 		<ApplicationIcon>Resources\favicon.ico</ApplicationIcon>
@@ -12,103 +12,108 @@
 		<Platforms>AnyCPU;x64;x86</Platforms>
 		<SignAssembly>true</SignAssembly>
 		<AssemblyOriginatorKeyFile>DangerZoneHackerTrackerKiDFearLess.pfx</AssemblyOriginatorKeyFile>
+		<RuntimeIdentifiers>win-x86;win-x64</RuntimeIdentifiers>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-	  <DebugType>full</DebugType>
-	  <DebugSymbols>true</DebugSymbols>
+		<DebugType>full</DebugType>
+		<DebugSymbols>true</DebugSymbols>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
-	  <DebugType>full</DebugType>
-	  <DebugSymbols>true</DebugSymbols>
+		<DebugType>full</DebugType>
+		<DebugSymbols>true</DebugSymbols>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-	  <DebugType>full</DebugType>
-	  <DebugSymbols>true</DebugSymbols>
+		<DebugType>full</DebugType>
+		<DebugSymbols>true</DebugSymbols>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-	  <DebugType>full</DebugType>
-	  <DebugSymbols>true</DebugSymbols>
-	  <OutputPath></OutputPath>
+		<DebugType>full</DebugType>
+		<DebugSymbols>true</DebugSymbols>
+		<OutputPath></OutputPath>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
-	  <DebugType>full</DebugType>
-	  <DebugSymbols>true</DebugSymbols>
-	  <OutputPath />
+		<DebugType>full</DebugType>
+		<DebugSymbols>true</DebugSymbols>
+		<OutputPath />
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-	  <DebugType>full</DebugType>
-	  <DebugSymbols>true</DebugSymbols>
-	  <OutputPath />
+		<DebugType>full</DebugType>
+		<DebugSymbols>true</DebugSymbols>
+		<OutputPath />
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <Compile Remove="Controls\**" />
-	  <Compile Remove="Notifications.Wpf.Core\**" />
-	  <Compile Remove="Publish\**" />
-	  <EmbeddedResource Remove="Controls\**" />
-	  <EmbeddedResource Remove="Notifications.Wpf.Core\**" />
-	  <EmbeddedResource Remove="Publish\**" />
-	  <None Remove="Controls\**" />
-	  <None Remove="Notifications.Wpf.Core\**" />
-	  <None Remove="Publish\**" />
-	  <Page Remove="Controls\**" />
-	  <Page Remove="Notifications.Wpf.Core\**" />
-	  <Page Remove="Publish\**" />
+		<Compile Remove="Controls\**" />
+		<Compile Remove="Notifications.Wpf.Core\**" />
+		<Compile Remove="Publish\**" />
+		<EmbeddedResource Remove="Controls\**" />
+		<EmbeddedResource Remove="Notifications.Wpf.Core\**" />
+		<EmbeddedResource Remove="Publish\**" />
+		<None Remove="Controls\**" />
+		<None Remove="Notifications.Wpf.Core\**" />
+		<None Remove="Publish\**" />
+		<Page Remove="Controls\**" />
+		<Page Remove="Notifications.Wpf.Core\**" />
+		<Page Remove="Publish\**" />
 	</ItemGroup>
 
 
 	<ItemGroup>
-	  <None Remove="app.manifest" />
-	  <None Remove="DangerZoneHackerTracker.exe - Shortcut.lnk" />
-	  <None Remove="DangerZoneHackerTrackerV2.zip" />
-	  <None Remove="Resources\DZ_ICON.png" />
-	  <None Remove="Resources\favicon.ico" />
-	  <None Remove="Resources\haaaaxedit.mp3" />
-	  <None Remove="Resources\icon.png" />
-	  <None Remove="Views\13614349.png" />
+		<None Remove="app.manifest" />
+		<None Remove="DangerZoneHackerTracker.exe - Shortcut.lnk" />
+		<None Remove="DangerZoneHackerTrackerV2.zip" />
+		<None Remove="Resources\DZ_ICON.png" />
+		<None Remove="Resources\favicon.ico" />
+		<None Remove="Resources\haaaaxedit.mp3" />
+		<None Remove="Resources\icon.png" />
+		<None Remove="Views\13614349.png" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Page Remove="App.xaml" />
+		<Page Remove="App.xaml" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Content Include="Resources\DZ_ICON.png">
-	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-	  </Content>
-	  <EmbeddedResource Include="Resources\favicon.ico" />
-	  <EmbeddedResource Include="Resources\haaaaxedit.mp3" />
-	  <Content Include="Resources\icon.png">
-	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-	  </Content>
+		<Content Include="Resources\DZ_ICON.png">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
+		<EmbeddedResource Include="Resources\favicon.ico" />
+		<EmbeddedResource Include="Resources\haaaaxedit.mp3" />
+		<Content Include="Resources\icon.png">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
 	</ItemGroup>
 
 	<ItemGroup>
-	  <None Include="App.xaml" />
+		<None Include="App.xaml" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <PackageReference Include="AsyncFriendlyStackTrace" Version="1.6.0" />
-	  <PackageReference Include="Biaui" Version="1.0.23" />
-	  <PackageReference Include="Microsoft.Data.Sqlite" Version="5.0.1" />
-	  <PackageReference Include="NAudio" Version="1.10.0" />
-	  <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+		<PackageReference Include="AsyncFriendlyStackTrace" Version="1.6.0" />
+		<PackageReference Include="Biaui" Version="1.0.23" />
+		<PackageReference Include="Microsoft.Data.Sqlite" Version="5.0.1" />
+		<PackageReference Include="NAudio" Version="1.10.0" />
+		<PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="Notifications.Wpf.Core\Notifications.Wpf.Core.csproj" />
+		<ProjectReference Include="Notifications.Wpf.Core\Notifications.Wpf.Core.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ApplicationDefinition Update="App.xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </ApplicationDefinition>
+		<ApplicationDefinition Update="App.xaml">
+			<Generator>MSBuild:Compile</Generator>
+		</ApplicationDefinition>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Properties\" />
 	</ItemGroup>
 
 </Project>

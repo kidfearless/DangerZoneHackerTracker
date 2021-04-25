@@ -527,7 +527,7 @@ namespace DangerZoneHackerTracker
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Wrong Usage", "DF0010:Marks undisposed local variables.", Justification = "It is disposed")]
 		private void Import_Clicked(object sender, RoutedEventArgs e)
 		{
-			T TryGetValue<T>(SqliteDataReader reader, string value)
+			static T TryGetValue<T>(SqliteDataReader reader, string value)
 			{
 				try
 				{
@@ -546,7 +546,7 @@ namespace DangerZoneHackerTracker
 			};
 			try
 			{
-				if ((bool)dialog.ShowDialog())
+				if (dialog.ShowDialog() is true)
 				{
 					var ext = Path.GetExtension(dialog.FileName);
 					switch (ext)

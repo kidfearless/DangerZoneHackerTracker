@@ -6,7 +6,7 @@
 		<LangVersion>9.0</LangVersion>
 		<UseWPF>true</UseWPF>
 		<ApplicationIcon>Resources\favicon.ico</ApplicationIcon>
-		<Version>2.1.0</Version>
+		<Version>2.2.0</Version>
 		<Authors>KiD Fearless</Authors>
 		<Product>DangerZoneHackerTracker</Product>
 		<Platforms>AnyCPU;x64;x86</Platforms>

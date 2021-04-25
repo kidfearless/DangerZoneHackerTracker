@@ -10,6 +10,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Shapes;
 using System.Windows.Media;
+using System.Diagnostics;
 
 namespace DangerZoneHackerTracker
 {
@@ -86,9 +87,9 @@ namespace DangerZoneHackerTracker
 					this.Profile = await Steam.GetProfileDataAsync(url);
 					this.ProfileRetreived?.Invoke(this, this.Profile);
 				}
-				catch
+				catch(Exception e)
 				{
-
+					Debugger.Break();
 				}
 			}
 		}

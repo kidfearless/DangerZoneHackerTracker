@@ -201,7 +201,6 @@ namespace DangerZoneHackerTracker.Views
 			txtCheatList.TextChanged += HandleText;
 			txtNotes.TextChanged += HandleText;
 			txtThreat.TextChanged += HandleText;
-
 		}
 
 
